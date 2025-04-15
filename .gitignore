@@ -1,3 +1,101 @@
-target/*
-src/main.rs
-.vscode/*
+
+
+# Скомпилированные файлы и директории
+/target/
+**/*.rs.bk
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.rlib
+*.rmeta
+
+# Файлы кэша и тестов
+**/.cargo-ok
+.cargo/config.toml
+
+# Локальные файлы конфигурации Cargo
+Cargo.lock
+# В зависимости от проекта, Cargo.lock может быть желательно добавить в репозиторий
+# Для библиотек обычно игнорируют Cargo.lock
+# Для исполняемых файлов обычно включают Cargo.lock
+
+# Директории и файлы профилирования
+flamegraph.svg
+perf.data
+perf.data.old
+/profiling/
+
+# Файлы документации
+/doc/
+/target/doc/
+
+# Файлы IDE и редакторов
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# Файлы тестирования
+/target/debug/
+/target/release/
+/target/test/
+/target/bench/
+
+# Директории зависимостей
+/.cargo/
+/vendor/
+
+# Файлы конфигурации среды
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.example
+.envrc
+.direnv/
+
+# Файлы логов и временные файлы
+*.log
+.temp
+.tmp
+tmp/
+temp/
+logs/
+
+# Файлы базы данных
+*.sqlite
+*.sqlite3
+*.db
+
+# Файлы сертификатов и ключей
+*.pem
+*.key
+*.cert
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# Сгенерированные файлы протокола
+*.pb.rs
+generated/
+
+# Файлы OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
