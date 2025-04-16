@@ -1,9 +1,9 @@
 mod models;
 mod server;
 mod handlers;
-mod json_generator;
-mod app_state;
 
+mod app_state;
+mod svg_generator; 
 use log::{debug, error, info, warn};
 use std::net::SocketAddr;
 
@@ -27,9 +27,8 @@ async fn main() {
     println!("РезальНяш запущен на http://{}", addr);
     println!("Ожидаем запросы на няшный раскрой...");
     println!("Доступные API:");
-    println!("  JSON API: POST/GET /api/sheet");
-    println!("  Примеры: GET /api/examples/request - пример запроса");
-    println!("           GET /api/examples/response - пример ответа");
+    println!("  SVG API:  POST/GET /api/sheet/svg");
+    println!("  Неразмещенные детали: GET /api/sheet/unplaced");
     
     server::start_server(state, addr).await;
 }
