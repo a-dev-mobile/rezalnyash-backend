@@ -7,7 +7,7 @@ use tokio::net::TcpListener;
 use tower_http::cors::{Any, CorsLayer};
 
 use crate::app_state::AppState;
-use crate::handlers::{ create_sheet_svg,  get_sheet_svg, get_unplaced_svg};
+use crate::handlers::{ create_sheet_svg,  get_sheet_svg};
 
 pub async fn start_server(state: AppState, addr: SocketAddr) {
     // Настраиваем CORS
@@ -18,13 +18,9 @@ pub async fn start_server(state: AppState, addr: SocketAddr) {
 
     // Настраиваем маршрутизацию
     let app = Router::new()
-
-
-        // Новые SVG маршруты
+        // SVG маршруты
         .route("/api/sheet/svg", post(create_sheet_svg))
         .route("/api/sheet/svg", get(get_sheet_svg))
-        // Новый маршрут для неразмещенных деталей
-        .route("/api/sheet/unplaced", get(get_unplaced_svg))
         .layer(cors)
         .with_state(state);
 

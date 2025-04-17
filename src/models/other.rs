@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::margins::Margins;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SheetDimension {
     pub width: u32,
@@ -13,13 +15,13 @@ pub struct DetailDimension {
     pub width: u32,
     pub length: u32,
     pub quantity: u32,
-    pub angle: Option<u32>,  // угол поворота в градусах (0, 90, 180, 270)
+    pub angle: Option<u32>, // угол поворота в градусах (0, 90, 180, 270)
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EdgeType {
-    pub edge_type: String,  // тип кромки
-    pub thickness: f32,     // толщина кромки в мм
+    pub edge_type: String, // тип кромки
+    pub thickness: f32,    // толщина кромки в мм
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -33,16 +35,16 @@ pub struct SheetRequest {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MaterialInfo {
-    pub material_type: String,  // тип материала
-    pub thickness: f32,         // толщина материала в мм
+    pub material_type: String, // тип материала
+    pub thickness: f32,        // толщина материала в мм
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LayoutOptions {
-    pub method: String,         // "horizontal", "vertical", или "optimal"
-    pub gap: u32,               // зазор между деталями в пикселях
-    pub blade_width: u32,       // ширина реза пилы в мм
-    pub margin: u32,            // отступ от края листа в мм
+    pub method: String,          // "horizontal", "vertical", or "optimal"
+    pub gap: u32,                // gap between details in pixels
+    pub blade_width: u32,        // saw blade width in mm
+    pub margin: Margins,         // margin from sheet edge in mm
     pub starting_corner: String, // "top-left", "top-right", "bottom-left", "bottom-right"
 }
 
@@ -52,7 +54,7 @@ pub struct SheetResponse {
     pub sheet: SheetInfo,
     pub layout: LayoutInfo,
     pub details: Vec<DetailInfo>,
-    pub unplaced_details: Vec<UnplacedDetailInfo>,  // New field for details that didn't fit
+    pub unplaced_details: Vec<UnplacedDetailInfo>, // New field for details that didn't fit
     pub statistics: Statistics,
 }
 
@@ -99,14 +101,14 @@ pub struct TextPosition {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Statistics {
-    pub sheet_area: u32,           // sheet area
-    pub used_area: u32,            // used area
-    pub waste_area: u32,           // waste area
-    pub cut_length: u32,           // total cut length
-    pub edge_length: u32,          // total edge length
-    pub detail_count: u32,         // count of placed details
-    pub unplaced_count: u32,       // count of unplaced details - new field
-    pub efficiency: f32,           // cutting efficiency percentage
+    pub sheet_area: u32,     // sheet area
+    pub used_area: u32,      // used area
+    pub waste_area: u32,     // waste area
+    pub cut_length: u32,     // total cut length
+    pub edge_length: u32,    // total edge length
+    pub detail_count: u32,   // count of placed details
+    pub unplaced_count: u32, // count of unplaced details - new field
+    pub efficiency: f32,     // cutting efficiency percentage
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -116,5 +118,5 @@ pub struct UnplacedDetailInfo {
     pub width: u32,
     pub length: u32,
     pub angle: u32,
-    pub quantity: u32,  // How many instances couldn't be placed
+    pub quantity: u32, // How many instances couldn't be placed
 }

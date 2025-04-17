@@ -28,7 +28,6 @@ async fn main() {
     println!("Ожидаем запросы на няшный раскрой...");
     println!("Доступные API:");
     println!("  SVG API:  POST/GET /api/sheet/svg");
-    println!("  Неразмещенные детали: GET /api/sheet/unplaced");
     
     server::start_server(state, addr).await;
 }
