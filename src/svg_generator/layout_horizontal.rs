@@ -39,8 +39,8 @@ pub fn horizontal_layout(
     // Это помогает более эффективно использовать пространство листа
     let mut sorted_details = details.to_vec();
     sorted_details.sort_by(|a, b| {
-        let area_a = a.width * a.length;
-        let area_b = b.width * b.length;
+        let area_a = a.width * a.height;
+        let area_b = b.width * b.height;
         area_b.cmp(&area_a)
     });
 
@@ -54,13 +54,13 @@ pub fn horizontal_layout(
             // Определяем, нужно ли повернуть деталь для оптимизации раскроя
             // Для горизонтального размещения предпочтительнее детали с меньшей шириной
             let (effective_width, effective_length, angle) = match detail.angle {
-                Some(ang) => (detail.width, detail.length, ang),
+                Some(ang) => (detail.width, detail.height, ang),
                 None => {
                     // Автоматический поворот для оптимизации при горизонтальном размещении
-                    if detail.width <= detail.length {
-                        (detail.width, detail.length, 0)
+                    if detail.width <= detail.height {
+                        (detail.width, detail.height, 0)
                     } else {
-                        (detail.length, detail.width, 90)
+                        (detail.height, detail.width, 90)
                     }
                 }
             };
@@ -82,19 +82,19 @@ pub fn horizontal_layout(
                 // Переходим на новую строку
                 *current_x = if x_step > 0 { margins.left } else { sheet.width + margins.left };
                 *current_y = if y_step > 0 {
-                    *current_y + gap + blade_width + (&sorted_details).iter().map(|d| d.length).max().unwrap_or(0)
+                    *current_y + gap + blade_width + (&sorted_details).iter().map(|d| d.height).max().unwrap_or(0)
                 } else {
-                    let max_length = (&sorted_details).iter().map(|d| d.length).max().unwrap_or(0) as i32;
+                    let max_length = (&sorted_details).iter().map(|d| d.height).max().unwrap_or(0) as i32;
                     (*current_y as i32 - gap as i32 - blade_width as i32 - max_length).max(margins.top as i32) as u32
                 };
             }
 
             // Проверяем границы листа по оси Y с учетом отступов
             let min_y = margins.top as i32;
-            let max_y = (sheet.length + margins.top) as i32;
+            let max_y = (sheet.height + margins.top) as i32;
             
             // Проверяем, поместится ли деталь по высоте
-            if (y_step > 0 && (*current_y + effective_length) > (sheet.length + margins.top)) ||
+            if (y_step > 0 && (*current_y + effective_length) > (sheet.height + margins.top)) ||
                (y_step < 0 && (*current_y as i32 - effective_length as i32) < min_y) {
                 // Если деталь не помещается по высоте, она не может быть размещена
                 continue;
@@ -118,7 +118,7 @@ pub fn horizontal_layout(
                 id: detail.id,
                 name: detail.name.clone(),
                 width: effective_width,
-                length: effective_length,
+                height: effective_length,
                 angle,
                 x: x_pos,
                 y: y_pos,

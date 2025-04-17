@@ -5,7 +5,7 @@ use super::margins::Margins;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SheetDimension {
     pub width: u32,
-    pub length: u32,
+    pub height: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -13,7 +13,7 @@ pub struct DetailDimension {
     pub id: u32,
     pub name: String,
     pub width: u32,
-    pub length: u32,
+    pub height: u32,
     pub quantity: u32,
     pub angle: Option<u32>, // угол поворота в градусах (0, 90, 180, 270)
 }
@@ -61,7 +61,7 @@ pub struct SheetResponse {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SheetInfo {
     pub width: u32,
-    pub length: u32,
+    pub height: u32,
     pub padding: u32,
     pub viewBox: ViewBox,
 }
@@ -86,7 +86,7 @@ pub struct DetailInfo {
     pub id: u32,
     pub name: String,
     pub width: u32,
-    pub length: u32,
+    pub height: u32,
     pub angle: u32,
     pub x: u32,
     pub y: u32,
@@ -104,8 +104,8 @@ pub struct Statistics {
     pub sheet_area: u32,     // sheet area
     pub used_area: u32,      // used area
     pub waste_area: u32,     // waste area
-    pub cut_length: u32,     // total cut length
-    pub edge_length: u32,    // total edge length
+    pub cut_length: u32,     // total cut height
+    pub edge_length: u32,    // total edge height
     pub detail_count: u32,   // count of placed details
     pub unplaced_count: u32, // count of unplaced details - new field
     pub efficiency: f32,     // cutting efficiency percentage
@@ -116,7 +116,7 @@ pub struct UnplacedDetailInfo {
     pub id: u32,
     pub name: String,
     pub width: u32,
-    pub length: u32,
+    pub height: u32,
     pub angle: u32,
     pub quantity: u32, // How many instances couldn't be placed
 }
