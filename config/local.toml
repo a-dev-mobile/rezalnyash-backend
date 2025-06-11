@@ -1,0 +1,8 @@
+[logging]
+level = "debug,sqlx=debug"
+format = "text"            # Возможные значения: "json" или "text"
+
+[postgres]
+timeout = 30               # seconds
+max_connections = 20
+min_connections = 5

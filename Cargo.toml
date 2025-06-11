@@ -1,16 +1,64 @@
 [package]
 name = "rezalnyash"
-version = "0.2.0"
+version = "0.0.1"
 edition = "2021"
 description = "Optimizer cutting sheet materials"
 authors = ["Rezalnyash Team"]
 
+
 [dependencies]
-axum = "0.8.3"
-tokio = { version = "1.44.2", features = ["full"] }
+# Web framework
+axum = { version = "0.8.4", features = ["tracing"] }
+tokio = { version = "1.45.1", features = ["full"] }
+tower = "0.5.2"
+tower-http = { version = "0.6.6", features = ["trace", "cors"] }
+
+# Database
+sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "migrate", "json", "uuid", "chrono"] }
+
+# Serialization
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-tower-http = { version = "0.6.2", features = ["cors"] }
+toml = "0.8.23"
 
-log = "0.4.27"
-env_logger = "0.11.8"
+# PDF generation
+printpdf = "0.8.2"
+
+# Charts and visualization
+plotters = "0.3.7"
+plotters-bitmap = "0.3.7"
+
+# Optimization algorithms
+rand = "0.9.1"
+rayon = "1.10.0"  # Parallel processing
+
+# Error handling
+anyhow = "1.0.98"
+thiserror = "2.0.12"
+
+# Logging
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
+
+# OpenAPI documentation
+utoipa = { version = "5.3.1", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = 'abort'
+strip = true  # Remove debug symbols for smaller binary
+
+# Optimize dependencies for performance
+[profile.release.package."*"]
+opt-level = 3
+
+[dev-dependencies]
+axum-test = "17.3.0"
+criterion = { version = "0.6.0", features = ["html_reports"] }
+
+# [[bench]]
+# name = "optimization_algorithms"
+# harness = false
