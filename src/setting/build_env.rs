@@ -8,6 +8,9 @@ impl AppEnv {
         let server_port = get_env_var("SERVER_PORT");
         let server_address = get_env_var("SERVER_ADDRESS");
 
+
+
+
         let postgres_user = get_env_var("POSTGRES_USER");
         let postgres_password = get_env_var("POSTGRES_PASSWORD");
         let postgres_host = get_env_var("POSTGRES_HOST");
@@ -17,6 +20,7 @@ impl AppEnv {
             env: Env::from_str(&env).expect("Unknown environment"),
             server_port: server_port.parse().expect("PORT must be a number"),
             server_address,
+
             postgres_host,
             postgres_user,
             postgres_password,

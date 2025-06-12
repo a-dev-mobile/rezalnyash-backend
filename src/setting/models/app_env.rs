@@ -9,6 +9,7 @@ pub struct AppEnv {
     pub server_address: String,
 
     //
+
     pub postgres_host: String,
     pub postgres_user: String,
     pub postgres_password: String,

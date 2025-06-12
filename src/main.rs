@@ -16,10 +16,10 @@ use setting::models::{
 
 use std::{net::SocketAddr, sync::Arc};
 
-use crate::database::service::PostgresService;
+use crate::database::{migrations::run_migrations, service::PostgresService};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize application settings and logging
     let settings: Arc<AppSettings> = Arc::new(init_app().await);
     info!("🔪 Запуск РезальНяш 🔪");
@@ -29,29 +29,25 @@ async fn main() {
     error!("Ошибка: {}", "что-то пошло не так");
 
     // Connect to databases
-    let postgres_service = initialize_database(settings.clone()).await;
+    let postgres_service = Arc::new(initialize_database(settings.clone()).await);
 
-    // Создаем состояние приложения
-    // let state = app_state::create_state();
-
-    // Настраиваем и запускаем сервер
-    // Parse server address from configuration
-    let server_address: SocketAddr = format!(
+    let server_address = format!(
         "{}:{}",
-        settings.env.server_address, settings.env.server_port,
+        settings.env.server_address, settings.env.server_port
     )
     .parse()
     .expect("Invalid server address configuration");
 
     // Create application state with all services
-    let app_state: Arc<AppState> =
-        Arc::new(AppState::new(settings.clone(), Arc::new(postgres_service)).await);
+    let app_state = Arc::new(AppState::new(settings.clone(), postgres_service).await);
 
     // Create API router
-    let app_router = create_application_router(app_state.clone());
+    let app_router = create_application_router(app_state);
 
     // Start HTTP server
     start_http_server(app_router, server_address).await;
+
+    Ok(())
 }
 
 async fn init_app() -> AppSettings {
@@ -116,11 +112,21 @@ async fn start_http_server(app: Router, addr: SocketAddr) {
 
 async fn initialize_database(settings: Arc<AppSettings>) -> PostgresService {
     info!("Initializing database connections...");
-    match PostgresService::new(&settings).await {
+    
+    let postgres_service = match PostgresService::new(&settings).await {
         Ok(service) => service,
         Err(err) => {
             error!("Failed to connect to PostgreSQL: {}", err);
             panic!("Cannot continue without PostgreSQL connection");
         }
+    };
+
+    // Запуск миграций
+    info!("Running database migrations...");
+    if let Err(err) = run_migrations(postgres_service.connection.pool()).await {
+        error!("Failed to run migrations: {}", err);
+        panic!("Cannot continue without successful migrations");
     }
+
+    postgres_service
 }
