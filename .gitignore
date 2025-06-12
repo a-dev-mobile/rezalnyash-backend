@@ -60,6 +60,8 @@ perf.data.old
 .env.local
 .env.development
 .env.test
+.env.dev
+.env.prod
 .env.production
 .env.example
 .envrc
@@ -103,3 +105,4 @@ Thumbs.db
 
 rust_doc
 makefile
+

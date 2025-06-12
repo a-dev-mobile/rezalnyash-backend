@@ -14,7 +14,7 @@ impl PostgresConnection {
         info!("Initializing PostgreSQL connection...");
         let env = &settings.env;
         let config_postgres = &settings.config.postgres;
-        
+
         // Create connection string
         let connection_string = format!(
             "postgres://{}:{}@{}/{}",
@@ -27,14 +27,6 @@ impl PostgresConnection {
             .max_lifetime(std::time::Duration::from_secs(config_postgres.max_lifetime))
             .idle_timeout(std::time::Duration::from_secs(config_postgres.idle_timeout))
             .acquire_timeout(std::time::Duration::from_secs(config_postgres.timeout))
-            // Устанавливаем search_path для всех подключений
-            .after_connect(|conn, _meta| {
-                Box::pin(async move {
-                    // Устанавливаем схему по умолчанию для _sqlx_migrations
-                    sqlx::query("SET search_path = 'dev', 'public';").execute(conn).await?;
-                    Ok(())
-                })
-            })
             .connect(&connection_string)
             .await?;
 
@@ -54,6 +46,7 @@ impl PostgresConnection {
     pub fn pool(&self) -> &Pool<Postgres> {
         &self.pool
     }
+
     pub async fn health_check(&self) -> Result<(), sqlx::Error> {
         sqlx::query("SELECT 1").execute(&self.pool).await?;
         Ok(())

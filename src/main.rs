@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     error!("Ошибка: {}", "что-то пошло не так");
 
     // Connect to databases
-    let postgres_service = Arc::new(initialize_database(settings.clone()).await);
+    let postgres_service = Arc::new(initialize_database(settings.clone()).await?);
 
     let server_address = format!(
         "{}:{}",
@@ -58,6 +58,7 @@ async fn init_app() -> AppSettings {
         config,
         env: environment,
     };
+
     // Setup logging with configured level and format
     logger::init_logger(
         &app_settings.config.logging.level,
@@ -70,7 +71,7 @@ async fn init_app() -> AppSettings {
     info!("Starting application...");
     info!("Current environment: {}", app_settings.env.env);
 
-    if app_settings.env.is_local() {
+    if app_settings.env.is_development() {
         info!("Running in local development mode");
         debug!("Configuration details: {:#?}", app_settings);
     } else {
@@ -110,23 +111,15 @@ async fn start_http_server(app: Router, addr: SocketAddr) {
     }
 }
 
-async fn initialize_database(settings: Arc<AppSettings>) -> PostgresService {
+async fn initialize_database(
+    settings: Arc<AppSettings>,
+) -> Result<PostgresService, Box<dyn std::error::Error>> {
     info!("Initializing database connections...");
-    
-    let postgres_service = match PostgresService::new(&settings).await {
-        Ok(service) => service,
-        Err(err) => {
-            error!("Failed to connect to PostgreSQL: {}", err);
-            panic!("Cannot continue without PostgreSQL connection");
-        }
-    };
 
-    // Запуск миграций
+    let postgres_service = PostgresService::new(&settings).await?;
+
     info!("Running database migrations...");
-    if let Err(err) = run_migrations(postgres_service.connection.pool()).await {
-        error!("Failed to run migrations: {}", err);
-        panic!("Cannot continue without successful migrations");
-    }
+    run_migrations(postgres_service.connection.pool()).await?;
 
-    postgres_service
+    Ok(postgres_service)
 }

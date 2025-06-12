@@ -4,12 +4,11 @@ use std::str::FromStr;
 
 impl AppEnv {
     pub fn new() -> AppEnv {
-        let env = get_env_var("ENV");
-        let server_port = get_env_var("SERVER_PORT");
+        let env = Env::from_str(&get_env_var("ENV")).expect("Unknown environment");
+        let server_port = get_env_var("SERVER_PORT")
+            .parse()
+            .expect("PORT must be a number");
         let server_address = get_env_var("SERVER_ADDRESS");
-
-
-
 
         let postgres_user = get_env_var("POSTGRES_USER");
         let postgres_password = get_env_var("POSTGRES_PASSWORD");
@@ -17,10 +16,9 @@ impl AppEnv {
         let postgres_database = get_env_var("POSTGRES_DATABASE");
 
         AppEnv {
-            env: Env::from_str(&env).expect("Unknown environment"),
-            server_port: server_port.parse().expect("PORT must be a number"),
+            env,
+            server_port,
             server_address,
-
             postgres_host,
             postgres_user,
             postgres_password,
