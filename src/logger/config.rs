@@ -1,3 +1,4 @@
+use crate::error::AppError;
 use std::fmt;
 
 use std::io::{Error, ErrorKind};

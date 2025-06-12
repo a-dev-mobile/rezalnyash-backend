@@ -1,5 +1,6 @@
 mod api;
 mod database;
+mod error;
 mod logger;
 mod middleware;
 mod models;
@@ -85,7 +86,7 @@ async fn init_app() -> AppSettings {
 fn create_application_router(app_state: Arc<AppState>) -> Router {
     Router::new()
         .layer(middleware::create_cors())
-        .route("/api-health", get(api::health_api))
+        .route("/api-health", get(api::v1::health_api))
         // .route("/db-health", get(api::health_db))
         .layer(axum::Extension(app_state.clone()))
         .layer(middleware::create_trace())

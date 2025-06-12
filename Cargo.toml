@@ -33,8 +33,9 @@ rand = "0.9.1"
 rayon = "1.10.0"  # Parallel processing
 
 # Error handling
-anyhow = "1.0.98"
-thiserror = "2.0.12"
+
+# Misc utilities
+chrono = { version = "0.4.41", features = ["serde"] }
 
 # Logging
 tracing = "0.1.41"
