@@ -1,8 +1,8 @@
 mod api;
+mod database;
 mod logger;
 mod middleware;
 mod models;
-mod server;
 mod setting;
 mod utils;
 
@@ -16,16 +16,20 @@ use setting::models::{
 
 use std::{net::SocketAddr, sync::Arc};
 
+use crate::database::service::PostgresService;
+
 #[tokio::main]
 async fn main() {
     // Initialize application settings and logging
     let settings: Arc<AppSettings> = Arc::new(init_app().await);
-    println!("🔪 Запуск РезальНяш v0.2.0 🔪");
-
+    info!("🔪 Запуск РезальНяш 🔪");
     info!("Приложение запущено");
     debug!("Это отладочное сообщение");
     warn!("Предупреждение");
     error!("Ошибка: {}", "что-то пошло не так");
+
+    // Connect to databases
+    let postgres_service = initialize_database(settings.clone()).await;
 
     // Создаем состояние приложения
     // let state = app_state::create_state();
@@ -39,18 +43,15 @@ async fn main() {
     .parse()
     .expect("Invalid server address configuration");
 
-    info!("Server will listen on: {}", server_address);
-
     // Create application state with all services
-    let app_state: Arc<AppState> = Arc::new(AppState::new(settings.clone()).await);
+    let app_state: Arc<AppState> =
+        Arc::new(AppState::new(settings.clone(), Arc::new(postgres_service)).await);
 
     // Create API router
     let app_router = create_application_router(app_state.clone());
 
     // Start HTTP server
     start_http_server(app_router, server_address).await;
-
-    info!("Application started successfully!");
 }
 
 async fn init_app() -> AppSettings {
@@ -110,5 +111,16 @@ async fn start_http_server(app: Router, addr: SocketAddr) {
     if let Err(err) = axum::serve(listener, app).await {
         error!("Server error: {}", err);
         panic!("Server failed: {}", err);
+    }
+}
+
+async fn initialize_database(settings: Arc<AppSettings>) -> PostgresService {
+    info!("Initializing database connections...");
+    match PostgresService::new(&settings).await {
+        Ok(service) => service,
+        Err(err) => {
+            error!("Failed to connect to PostgreSQL: {}", err);
+            panic!("Cannot continue without PostgreSQL connection");
+        }
     }
 }

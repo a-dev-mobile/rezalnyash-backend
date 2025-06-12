@@ -99,3 +99,7 @@ generated/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+rust_doc
+makefile
