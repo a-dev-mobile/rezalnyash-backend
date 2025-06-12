@@ -87,6 +87,8 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
     Router::new()
         .layer(middleware::create_cors())
         .route("/api-health", get(api::v1::health_api))
+        .route("/db-health", get(api::v1::health_db)) // Новый endpoint
+        .route("/test-db-error", get(api::v1::test_db_error)) // Для демонстрации ошибок
         // .route("/db-health", get(api::health_db))
         .layer(axum::Extension(app_state.clone()))
         .layer(middleware::create_trace())
