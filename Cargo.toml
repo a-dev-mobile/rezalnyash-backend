@@ -4,7 +4,8 @@ version = "0.0.1"
 edition = "2021"
 description = "Optimizer cutting sheet materials"
 authors = ["Rezalnyash Team"]
-
+publish = false
+# build = "build.rs"
 
 [dependencies]
 # Web framework
@@ -21,6 +22,12 @@ serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 toml = "0.8.23"
 
+# UUID support
+uuid = { version = "1.17.0", features = ["v4", "serde"] }
+
+# Date/time
+chrono = { version = "0.4.41", features = ["serde"] }
+
 # PDF generation
 printpdf = "0.8.2"
 
@@ -32,18 +39,11 @@ plotters-bitmap = "0.3.7"
 rand = "0.9.1"
 rayon = "1.10.0"  # Parallel processing
 
-# Error handling
-
-# Misc utilities
-chrono = { version = "0.4.41", features = ["serde"] }
-
 # Logging
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
 
-# OpenAPI documentation
-utoipa = { version = "5.3.1", features = ["axum_extras"] }
-utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
+
 
 [profile.release]
 opt-level = 3
@@ -63,3 +63,9 @@ criterion = { version = "0.6.0", features = ["html_reports"] }
 # [[bench]]
 # name = "optimization_algorithms"
 # harness = false
+
+[build-dependencies]
+serde = { version = "1.0.219", features = ["derive"] }
+toml = "0.8.23"
+strum_macros = "0.27.1"
+strum = { version = "0.27.1", features = ["derive"] }

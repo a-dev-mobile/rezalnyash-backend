@@ -1,13 +1,17 @@
+// src/main.rs
+
 mod api;
 mod database;
 mod error;
 mod logger;
 mod middleware;
 mod models;
+mod services;
 mod setting;
+
 mod utils;
 
-use axum::{routing::get, Router};
+use axum::{routing::{get, post, delete}, Router};
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, warn};
 
@@ -87,9 +91,11 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
     Router::new()
         .layer(middleware::create_cors())
         .route("/api-health", get(api::v1::health_api))
-        .route("/db-health", get(api::v1::health_db)) // Новый endpoint
-        .route("/test-db-error", get(api::v1::test_db_error)) // Для демонстрации ошибок
-        // .route("/db-health", get(api::health_db))
+        .route("/db-health", get(api::v1::health_db))
+        .route("/test-db-error", get(api::v1::test_db_error))
+        // ДОБАВИТЬ ЭТИ МАРШРУТЫ:
+        .route("/api/v1/materials", get(api::v1::get_materials))
+        .route("/api/v1/materials/health", get(api::v1::materials_health_check))
         .layer(axum::Extension(app_state.clone()))
         .layer(middleware::create_trace())
 }
