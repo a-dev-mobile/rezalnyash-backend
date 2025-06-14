@@ -1,10 +1,12 @@
-use crate::utils::utils_http;
+
 use axum::http::Request;
 
 use tower_http::classify::{ServerErrorsAsFailures, SharedClassifier};
 use tower_http::trace::TraceLayer;
 
 use tower_http::cors::{Any, CorsLayer};
+
+use crate::shared::utils::http;
 
 /// Создаёт и настраивает `TraceLayer` для логирования HTTP-запросов.
 ///
@@ -25,7 +27,7 @@ pub fn create_trace() -> TraceLayer<
         }
 
         // Извлечение IP клиента с использованием новой функции
-        let client_ip = utils_http::get_client_ip(request);
+        let client_ip = http::get_client_ip(request);
 
         // Извлечение User-Agent
         let user_agent = request

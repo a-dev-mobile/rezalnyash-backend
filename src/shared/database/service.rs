@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use tracing::{error, info};
 
-use crate::{setting::models::app_setting::AppSettings, shared::database::connection::PostgresConnection};
+use crate::shared::{database::connection::PostgresConnection, setting::models::app_setting::AppSettings};
 
 
 pub struct PostgresService {

@@ -3,7 +3,8 @@ use std::sync::Arc;
 use axum::{http::StatusCode, Extension, Json};
 use serde_json::{json, Value};
 
-use crate::{error::{ApiResult, AppError}, setting::models::app_state::AppState};
+use crate::shared::{error::ApiResult, setting::models::app_state::AppState};
+
 
 
 pub async fn health_api() -> ApiResult<Json<Value>> {
@@ -25,7 +26,7 @@ pub async fn health_db(Extension(state): Extension<Arc<AppState>>) -> ApiResult<
     
     let result = json!({
         "status": "healthy",
-        "database": "connected"
+
     });
 
     Ok(Json(result))

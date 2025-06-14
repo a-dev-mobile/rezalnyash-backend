@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use crate::{setting::models::app_setting::AppSettings, shared::database::service::PostgresService};
+use crate::shared::{database::service::PostgresService, setting::models::app_setting::AppSettings};
+
 
 pub struct AppState {
     pub settings: Arc<AppSettings>,

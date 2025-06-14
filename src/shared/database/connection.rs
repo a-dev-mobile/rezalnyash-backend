@@ -2,7 +2,9 @@ use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::sync::Arc;
 use tracing::{debug, error, info};
 
-use crate::setting::models::app_setting::AppSettings;
+use crate::shared::setting::models::app_setting::AppSettings;
+
+
 
 #[derive(Clone)]
 pub struct PostgresConnection {

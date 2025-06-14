@@ -1,31 +1,19 @@
-// src/main.rs
-
 mod api;
 
-mod error;
 mod features;
-mod logger;
-mod middleware;
-
-mod setting;
 mod shared;
-
-mod utils;
-
-use axum::{
-    routing::get,
-    Router,
-};
+use axum::{routing::get, Router};
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, warn};
-
-use setting::models::{app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState};
 
 use std::{net::SocketAddr, sync::Arc};
 
 use crate::{
-
-    features::materials::MaterialsRoutesBuilder, shared::database::{migrations::run_migrations, service::PostgresService},
+    features::materials::MaterialsRoutesBuilder,
+    shared::{
+        database::{migrations::run_migrations, service::PostgresService},
+        logger, middleware, setting::models::{app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState},
+    },
 };
 
 #[tokio::main]
@@ -99,7 +87,6 @@ fn create_application_router(app_state: Arc<AppState>, postgres_service: Arc<Pos
         .route("/db-health", get(api::v1::health_db))
         .route("/test-db-error", get(api::v1::test_db_error))
         .nest("/api/v1/materials", MaterialsRoutesBuilder::build_v1(pool))
-
         .layer(axum::Extension(app_state.clone()))
         .layer(middleware::create_trace())
 }
