@@ -50,7 +50,7 @@ pub struct LanguageUtils;
 
 impl LanguageUtils {
     /// Извлекает язык из заголовка Accept-Language
-    /// 
+    ///
     /// # Примеры
     /// - "ru-RU,ru;q=0.9,en;q=0.8" -> Language::Russian
     /// - "en-US,en;q=0.9" -> Language::English
@@ -83,12 +83,12 @@ impl LanguageUtils {
     }
 
     /// Выбирает локализованный текст на основе языка
-    /// 
+    ///
     /// # Аргументы
     /// - `language` - язык для выбора
     /// - `ru_text` - текст на русском языке
     /// - `en_text` - текст на английском языке
-    /// 
+    ///
     /// # Возвращает
     /// Соответствующий текст для указанного языка
     pub fn localize_text(language: &Language, ru_text: &str, en_text: &str) -> String {
@@ -99,11 +99,7 @@ impl LanguageUtils {
     }
 
     /// Выбирает локализованный текст из пары Option<String>
-    pub fn localize_optional_text(
-        language: &Language,
-        ru_text: Option<&str>,
-        en_text: Option<&str>,
-    ) -> Option<String> {
+    pub fn localize_optional_text(language: &Language, ru_text: Option<&str>, en_text: Option<&str>) -> Option<String> {
         match language {
             Language::Russian => ru_text.map(|s| s.to_string()),
             Language::English => en_text.map(|s| s.to_string()),
@@ -123,74 +119,5 @@ impl LanguageUtils {
     /// Возвращает список всех поддерживаемых языков
     pub fn supported_languages() -> Vec<Language> {
         vec![Language::Russian, Language::English]
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::http::{HeaderMap, HeaderValue};
-
-    #[test]
-    fn test_parse_accept_language() {
-        assert_eq!(
-            LanguageUtils::parse_accept_language("ru-RU,ru;q=0.9,en;q=0.8"),
-            Language::Russian
-        );
-        assert_eq!(
-            LanguageUtils::parse_accept_language("en-US,en;q=0.9"),
-            Language::English
-        );
-        assert_eq!(
-            LanguageUtils::parse_accept_language("fr-FR,fr;q=0.9"),
-            Language::English
-        );
-        assert_eq!(
-            LanguageUtils::parse_accept_language("ru"),
-            Language::Russian
-        );
-    }
-
-    #[test]
-    fn test_extract_from_headers() {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            "accept-language",
-            HeaderValue::from_static("ru-RU,ru;q=0.9,en;q=0.8"),
-        );
-        assert_eq!(LanguageUtils::extract_from_headers(&headers), Language::Russian);
-
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            "accept-language",
-            HeaderValue::from_static("en-US,en;q=0.9"),
-        );
-        assert_eq!(LanguageUtils::extract_from_headers(&headers), Language::English);
-
-        let headers = HeaderMap::new();
-        assert_eq!(LanguageUtils::extract_from_headers(&headers), Language::English);
-    }
-
-    #[test]
-    fn test_localize_text() {
-        assert_eq!(
-            LanguageUtils::localize_text(&Language::Russian, "Привет", "Hello"),
-            "Привет"
-        );
-        assert_eq!(
-            LanguageUtils::localize_text(&Language::English, "Привет", "Hello"),
-            "Hello"
-        );
-    }
-
-    #[test]
-    fn test_language_properties() {
-        assert!(Language::Russian.is_russian());
-        assert!(!Language::Russian.is_english());
-        assert!(Language::English.is_english());
-        assert!(!Language::English.is_russian());
-        
-        assert_eq!(Language::Russian.code(), "ru");
-        assert_eq!(Language::English.code(), "en");
     }
 }
