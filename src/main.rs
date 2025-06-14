@@ -1,19 +1,29 @@
 mod features;
 mod shared;
-use axum::{routing::get, Router};
+
+use axum::{
+    extract::Path,
+    http::StatusCode,
+    response::Json,
+    routing::{get, post},
+    Router,
+};
+use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, warn};
 
-use std::{net::SocketAddr, sync::Arc};
-
 use crate::{
-    features::{health::HealthRoutesBuilder, materials::MaterialsRoutesBuilder},
+    features::health::HealthRoutesBuilder,
     shared::{
         database::{migrations::run_migrations, service::PostgresService},
         logger, middleware,
         setting::models::{app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState},
     },
 };
+
+// Дополнительные импорты для JSON и времени
+use chrono;
+use serde_json;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -32,11 +42,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .parse()
         .expect("Invalid server address configuration");
 
-    // Create application state with all services
-    let app_state = Arc::new(AppState::new(settings.clone(), postgres_service.clone()).await);
+    // Create application state with all services and dependencies
+    let app_state = Arc::new(AppState::new(settings.clone(), postgres_service).await);
 
-    // Create API router
-    let app_router = create_application_router(app_state, postgres_service);
+    // Create API router using app_state
+    let app_router = create_application_router(app_state);
 
     // Start HTTP server
     start_http_server(app_router, server_address).await;
@@ -76,17 +86,117 @@ async fn init_app() -> AppSettings {
 }
 
 /// Creates the application router with all API endpoints and middleware
-fn create_application_router(app_state: Arc<AppState>, postgres_service: Arc<PostgresService>) -> Router {
-    // Получаем pool из postgres_service
-    let pool = postgres_service.connection.pool().clone();
-
+fn create_application_router(app_state: Arc<AppState>) -> Router {
     Router::new()
+        // CORS и трейсинг middleware
         .layer(middleware::create_cors())
-        .nest("/api/v1/health", HealthRoutesBuilder::build_v1(pool.clone()))
-        .nest("/api/v1/materials", MaterialsRoutesBuilder::build_v1(pool))
-        .layer(axum::Extension(app_state.clone()))
         .layer(middleware::create_trace())
+        // === HEALTH ENDPOINTS ===
+        // .route(
+        //     "/api/v1/health",
+        //     get({
+        //         let app_state = Arc::clone(&app_state);
+        //         move || async move { health_check(app_state).await }
+        //     }),
+        // )
+        // .route(
+        //     "/api/v1/health/db",
+        //     get({
+        //         let app_state = Arc::clone(&app_state);
+        //         move || async move { health_db_check(app_state).await }
+        //     }),
+        // )
+        // .route(
+        //     "/api/v1/health/detailed",
+        //     get({
+        //         let app_state = Arc::clone(&app_state);
+        //         move || async move { health_detailed_check(app_state).await }
+        //     }),
+        // )
+        // === WIDTHS ENDPOINTS ===
+        .route(
+            "/api/v1/materials/widths",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move || async move { app_state.width_handler.get_all_widths().await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/widths",
+            post({
+                let app_state = Arc::clone(&app_state);
+                move |payload| async move { app_state.width_handler.create_width(payload).await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/widths/{id}",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move |path| async move { app_state.width_handler.get_width(path).await }
+            }),
+        )
+        // === MATERIALS ENDPOINTS (будущие) ===
+        // .route("/api/v1/materials", get({
+        //     let app_state = Arc::clone(&app_state);
+        //     move || async move {
+        //         app_state.material_handler.get_all_materials().await
+        //     }
+        // }))
+        // .route("/api/v1/materials", post({
+        //     let app_state = Arc::clone(&app_state);
+        //     move |payload| async move {
+        //         app_state.material_handler.create_material(payload).await
+        //     }
+        // }))
+        // .route("/api/v1/materials/{id}", get({
+        //     let app_state = Arc::clone(&app_state);
+        //     move |path| async move {
+        //         app_state.material_handler.get_material(path).await
+        //     }
+        // }))
+        // === MATERIAL NAMES ENDPOINTS (будущие) ===
+        // .route("/api/v1/materials/names", get({
+        //     let app_state = Arc::clone(&app_state);
+        //     move || async move {
+        //         app_state.material_name_handler.get_all_material_names().await
+        //     }
+        // }))
+        // .route("/api/v1/materials/names", post({
+        //     let app_state = Arc::clone(&app_state);
+        //     move |payload| async move {
+        //         app_state.material_name_handler.create_material_name(payload).await
+        //     }
+        // }))
+        // === HEIGHTS ENDPOINTS (будущие) ===
+        // .route("/api/v1/heights", get({
+        //     let app_state = Arc::clone(&app_state);
+        //     move || async move {
+        //         app_state.height_handler.get_all_heights().await
+        //     }
+        // }))
+        // .route("/api/v1/heights", post({
+        //     let app_state = Arc::clone(&app_state);
+        //     move |payload| async move {
+        //         app_state.height_handler.create_height(payload).await
+        //     }
+        // }))
+        // === THICKNESS ENDPOINTS (будущие) ===
+        // .route("/api/v1/thickness", get({
+        //     let app_state = Arc::clone(&app_state);
+        //     move || async move {
+        //         app_state.thickness_handler.get_all_thickness().await
+        //     }
+        // }))
+        // .route("/api/v1/thickness", post({
+        //     let app_state = Arc::clone(&app_state);
+        //     move |payload| async move {
+        //         app_state.thickness_handler.create_thickness(payload).await
+        //     }
+        // }))
+        // Добавляем состояние приложения как Extension
+        .layer(axum::Extension(app_state))
 }
+
 
 /// Starts the HTTP server on the specified address
 async fn start_http_server(app: Router, addr: SocketAddr) {

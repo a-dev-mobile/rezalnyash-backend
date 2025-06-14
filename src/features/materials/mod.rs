@@ -4,6 +4,8 @@ pub mod services;
 pub mod models;
 pub mod handlers;
 pub mod routes;
+pub mod shared;
+pub mod features;
 
 pub use domain::{
     entities::{MaterialType, MaterialName, Width, Height, Thickness},
