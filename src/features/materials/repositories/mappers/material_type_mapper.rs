@@ -1,10 +1,7 @@
+use uuid::Uuid;
 
 use crate::features::materials::{
-    domain::{
-        entities::MaterialType,
-        errors::MaterialError,
-        value_objects::MaterialTypeId,
-    },
+    domain::{entities::MaterialType, errors::MaterialError, value_objects::MaterialTypeUid},
     models::database::MaterialTypeDb,
 };
 
@@ -14,7 +11,7 @@ impl MaterialTypeMapper {
     /// Преобразование из доменной модели в модель БД (для вставки)
     pub fn to_db_insert(domain: &MaterialType) -> MaterialTypeDb {
         MaterialTypeDb::new(
-            0, // ID будет назначен БД
+            Uuid::new_v4(),
             domain.name_ru().to_string(),
             domain.name_en().to_string(),
         )
@@ -22,7 +19,7 @@ impl MaterialTypeMapper {
 
     /// Преобразование из модели БД в доменную модель
     pub fn from_db(db: MaterialTypeDb) -> Result<MaterialType, MaterialError> {
-        let id = MaterialTypeId::new(db.material_type_id)?;
+        let id = MaterialTypeUid::new(db.material_type_uid);
         MaterialType::new(id, db.name_ru, db.name_en)
     }
 
@@ -37,9 +34,6 @@ impl MaterialTypeMapper {
 
     /// Преобразование списка из БД в доменные модели
     pub fn from_db_list(db_list: Vec<MaterialTypeDb>) -> Result<Vec<MaterialType>, MaterialError> {
-        db_list
-            .into_iter()
-            .map(Self::from_db)
-            .collect::<Result<Vec<_>, _>>()
+        db_list.into_iter().map(Self::from_db).collect::<Result<Vec<_>, _>>()
     }
 }

@@ -1,9 +1,11 @@
 
+use uuid::Uuid;
+
 use crate::features::materials::{
     domain::{
         entities::MaterialName,
         errors::MaterialError,
-        value_objects::MaterialNameId,
+        value_objects::MaterialNameUid,
     },
     models::database::MaterialNameDb,
 };
@@ -14,7 +16,7 @@ impl MaterialNameMapper {
     /// Преобразование из доменной модели в модель БД (для вставки)
     pub fn to_db_insert(domain: &MaterialName) -> MaterialNameDb {
         MaterialNameDb::new(
-            0, // ID будет назначен БД
+            Uuid::new_v4(),
             domain.name_ru().to_string(),
             domain.name_en().to_string(),
         )
@@ -22,7 +24,7 @@ impl MaterialNameMapper {
 
     /// Преобразование из модели БД в доменную модель
     pub fn from_db(db: MaterialNameDb) -> Result<MaterialName, MaterialError> {
-        let id = MaterialNameId::new(db.material_name_id)?;
+        let id = MaterialNameUid::new(db.material_name_uid);
         MaterialName::new(id, db.name_ru, db.name_en)
     }
 

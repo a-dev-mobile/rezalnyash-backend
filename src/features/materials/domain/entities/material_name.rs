@@ -1,14 +1,14 @@
-use crate::features::materials::domain::{errors::MaterialError, value_objects::MaterialNameId};
+use crate::features::materials::domain::{errors::MaterialError, value_objects::MaterialNameUid};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MaterialName {
-    id: MaterialNameId,
+    id: MaterialNameUid,
     name_ru: String,
     name_en: String,
 }
 
 impl MaterialName {
-    pub fn new(id: MaterialNameId, name_ru: String, name_en: String) -> Result<Self, MaterialError> {
+    pub fn new(id: MaterialNameUid, name_ru: String, name_en: String) -> Result<Self, MaterialError> {
         if name_ru.trim().is_empty() {
             return Err(MaterialError::ValidationError {
                 message: "Название материала (RU) не может быть пустым".to_string(),
@@ -41,13 +41,13 @@ impl MaterialName {
         }
 
         Ok(Self {
-            id: MaterialNameId::new(0)?, // Временный ID, будет заменен после сохранения
+            id: MaterialNameUid::generate(), // Генерируем новый UUID
             name_ru: name_ru.trim().to_string(),
             name_en: name_en.trim().to_string(),
         })
     }
 
-    pub fn id(&self) -> &MaterialNameId {
+    pub fn id(&self) -> &MaterialNameUid {
         &self.id
     }
 
@@ -60,7 +60,7 @@ impl MaterialName {
     }
 
     // Для установки ID после сохранения в БД
-    pub fn with_id(mut self, id: MaterialNameId) -> Self {
+    pub fn with_id(mut self, id: MaterialNameUid) -> Self {
         self.id = id;
         self
     }

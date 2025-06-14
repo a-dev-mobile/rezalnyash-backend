@@ -1,7 +1,7 @@
 use crate::features::materials::domain::{
     entities::MaterialType,
     errors::MaterialError,
-    value_objects::MaterialTypeId,
+    value_objects::MaterialTypeUid,
     traits::MaterialTypeBehavior,
 };
 

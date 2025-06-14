@@ -1,11 +1,12 @@
 use crate::features::materials::{
     domain::{
-        entities::MaterialType, errors::MaterialError, traits::MaterialTypeBehavior, value_objects::MaterialTypeId,
+        entities::MaterialType, errors::MaterialError, traits::MaterialTypeBehavior, value_objects::MaterialTypeUid,
     },
     models::database::MaterialTypeDb,
     repositories::{mappers::MaterialTypeMapper, traits::MaterialTypeRepository},
 };
 use sqlx::PgPool;
+use uuid::Uuid;
 
 pub struct PostgresMaterialTypeRepository {
     pool: PgPool,
@@ -19,9 +20,9 @@ impl PostgresMaterialTypeRepository {
 
 #[async_trait::async_trait]
 impl MaterialTypeBehavior for PostgresMaterialTypeRepository {
-    async fn get_material_type(&self, id: &MaterialTypeId) -> Result<MaterialType, MaterialError> {
+    async fn get_material_type(&self, id: &MaterialTypeUid) -> Result<MaterialType, MaterialError> {
         let db_model = sqlx::query_as::<_, MaterialTypeDb>(
-            "SELECT material_type_id, name_ru, name_en FROM materials.material_types WHERE material_type_id = $1",
+            "SELECT material_type_uid, name_ru, name_en FROM materials.material_types WHERE material_type_uid = $1",
         )
         .bind(id.value())
         .fetch_one(&self.pool)
@@ -40,7 +41,7 @@ impl MaterialTypeBehavior for PostgresMaterialTypeRepository {
 
     async fn get_all_material_types(&self) -> Result<Vec<MaterialType>, MaterialError> {
         let db_models = sqlx::query_as::<_, MaterialTypeDb>(
-            "SELECT material_type_id, name_ru, name_en FROM materials.material_types ORDER BY material_type_id",
+            "SELECT material_type_uid, name_ru, name_en FROM materials.material_types ORDER BY name_ru",
         )
         .fetch_all(&self.pool)
         .await
@@ -68,7 +69,8 @@ impl MaterialTypeBehavior for PostgresMaterialTypeRepository {
             }
         }
 
-        let db_model = sqlx::query_as::<_, MaterialTypeDb>("INSERT INTO materials.material_types (name_ru, name_en) VALUES ($1, $2) RETURNING material_type_id, name_ru, name_en")
+        let db_model = sqlx::query_as::<_, MaterialTypeDb>("INSERT INTO materials.material_types (material_type_uid, name_ru, name_en) VALUES ($1, $2, $3) RETURNING material_type_uid, name_ru, name_en")
+            .bind(material_type.id().value())
             .bind(material_type.name_ru())
             .bind(material_type.name_en())
             .fetch_one(&self.pool)
@@ -80,9 +82,9 @@ impl MaterialTypeBehavior for PostgresMaterialTypeRepository {
         MaterialTypeMapper::from_db(db_model)
     }
 
-    async fn exists(&self, id: &MaterialTypeId) -> Result<bool, MaterialError> {
+    async fn exists(&self, id: &MaterialTypeUid) -> Result<bool, MaterialError> {
         let count: i64 =
-            sqlx::query_scalar("SELECT COUNT(*) FROM materials.material_types WHERE material_type_id = $1")
+            sqlx::query_scalar("SELECT COUNT(*) FROM materials.material_types WHERE material_type_uid = $1")
                 .bind(id.value())
                 .fetch_one(&self.pool)
                 .await
@@ -94,7 +96,7 @@ impl MaterialTypeBehavior for PostgresMaterialTypeRepository {
     }
 
     async fn find_by_name(&self, name_ru: &str, name_en: &str) -> Result<Option<MaterialType>, MaterialError> {
-        let db_model = sqlx::query_as::<_, MaterialTypeDb>("SELECT material_type_id, name_ru, name_en FROM materials.material_types WHERE name_ru = $1 AND name_en = $2")
+        let db_model = sqlx::query_as::<_, MaterialTypeDb>("SELECT material_type_uid, name_ru, name_en FROM materials.material_types WHERE name_ru = $1 AND name_en = $2")
             .bind(name_ru)
             .bind(name_en)
             .fetch_optional(&self.pool)

@@ -1,22 +1,22 @@
-
+use crate::features::materials::services::dto::{MaterialNameDto, MaterialTypeDto};
 use serde::{Deserialize, Serialize};
-use crate::features::materials::services::dto::{MaterialTypeDto, MaterialNameDto};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MaterialTypeResponse {
-    pub id: i32,
+    pub uid: Uuid,
     pub name_ru: String,
     pub name_en: String,
 }
 
 impl MaterialTypeResponse {
-    pub fn new(id: i32, name_ru: String, name_en: String) -> Self {
-        Self { id, name_ru, name_en }
+    pub fn new(uid: Uuid, name_ru: String, name_en: String) -> Self {
+        Self { uid, name_ru, name_en }
     }
 
     pub fn from_dto(dto: &MaterialTypeDto) -> Self {
         Self {
-            id: dto.id,
+            uid: dto.uid,
             name_ru: dto.name_ru.clone(),
             name_en: dto.name_en.clone(),
         }
@@ -25,19 +25,19 @@ impl MaterialTypeResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MaterialNameResponse {
-    pub id: i32,
+    pub uid: Uuid,
     pub name_ru: String,
     pub name_en: String,
 }
 
 impl MaterialNameResponse {
-    pub fn new(id: i32, name_ru: String, name_en: String) -> Self {
-        Self { id, name_ru, name_en }
+    pub fn new(uid: Uuid, name_ru: String, name_en: String) -> Self {
+        Self { uid, name_ru, name_en }
     }
 
     pub fn from_dto(dto: &MaterialNameDto) -> Self {
         Self {
-            id: dto.id,
+            uid: dto.uid,
             name_ru: dto.name_ru.clone(),
             name_en: dto.name_en.clone(),
         }
@@ -79,4 +79,3 @@ impl MaterialNamesListResponse {
         Self::new(data)
     }
 }
-

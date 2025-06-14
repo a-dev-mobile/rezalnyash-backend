@@ -7,7 +7,7 @@ pub mod routes;
 
 pub use domain::{
     entities::{MaterialType, MaterialName},
-    value_objects::{MaterialTypeId, MaterialNameId},
+    value_objects::{MaterialTypeUid, MaterialNameUid},
     errors::MaterialError,
 };
 

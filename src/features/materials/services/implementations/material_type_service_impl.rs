@@ -1,10 +1,12 @@
 
 use std::sync::Arc;
+use uuid::Uuid;
+
 use crate::features::materials::{
     domain::{
         entities::MaterialType,
         errors::MaterialError,
-        value_objects::MaterialTypeId,
+        value_objects::MaterialTypeUid,
     },
     repositories::traits::MaterialTypeRepository,
     services::{
@@ -25,8 +27,8 @@ impl MaterialTypeServiceImpl {
 
 #[async_trait::async_trait]
 impl MaterialTypeService for MaterialTypeServiceImpl {
-    async fn get_material_type(&self, id: i32) -> Result<MaterialTypeDto, MaterialError> {
-        let material_type_id = MaterialTypeId::new(id)?;
+    async fn get_material_type(&self, id: Uuid) -> Result<MaterialTypeDto, MaterialError> {
+        let material_type_id = MaterialTypeUid::new(id);
         let material_type = self.repository.get_material_type(&material_type_id).await?;
         Ok(MaterialTypeDto::from_domain(&material_type))
     }
@@ -49,8 +51,8 @@ impl MaterialTypeService for MaterialTypeServiceImpl {
         Ok(MaterialTypeDto::from_domain(&created_material_type))
     }
 
-    async fn exists(&self, id: i32) -> Result<bool, MaterialError> {
-        let material_type_id = MaterialTypeId::new(id)?;
+    async fn exists(&self, id: Uuid) -> Result<bool, MaterialError> {
+        let material_type_id = MaterialTypeUid::new(id);
         self.repository.exists(&material_type_id).await
     }
 }

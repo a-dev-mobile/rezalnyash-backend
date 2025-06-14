@@ -1,10 +1,11 @@
 
 use sqlx::PgPool;
+use uuid::Uuid;
 use crate::features::materials::{
     domain::{
         entities::MaterialName,
         errors::MaterialError,
-        value_objects::MaterialNameId,
+        value_objects::MaterialNameUid,
         traits::MaterialNameBehavior,
     },
     models::database::MaterialNameDb,
@@ -26,9 +27,9 @@ impl PostgresMaterialNameRepository {
 
 #[async_trait::async_trait]
 impl MaterialNameBehavior for PostgresMaterialNameRepository {
-    async fn get_material_name(&self, id: &MaterialNameId) -> Result<MaterialName, MaterialError> {
+    async fn get_material_name(&self, id: &MaterialNameUid) -> Result<MaterialName, MaterialError> {
         let db_model = sqlx::query_as::<_, MaterialNameDb>(
-            "SELECT material_name_id, name_ru, name_en FROM materials.material_names WHERE material_name_id = $1"
+            "SELECT material_name_uid, name_ru, name_en FROM materials.material_names WHERE material_name_uid = $1"
         )
         .bind(id.value())
         .fetch_one(&self.pool)
@@ -47,7 +48,7 @@ impl MaterialNameBehavior for PostgresMaterialNameRepository {
 
     async fn get_all_material_names(&self) -> Result<Vec<MaterialName>, MaterialError> {
         let db_models = sqlx::query_as::<_, MaterialNameDb>(
-            "SELECT material_name_id, name_ru, name_en FROM materials.material_names ORDER BY name_ru"
+            "SELECT material_name_uid, name_ru, name_en FROM materials.material_names ORDER BY name_ru"
         )
         .fetch_all(&self.pool)
         .await
@@ -73,8 +74,9 @@ impl MaterialNameBehavior for PostgresMaterialNameRepository {
         }
 
         let db_model = sqlx::query_as::<_, MaterialNameDb>(
-            "INSERT INTO materials.material_names (name_ru, name_en) VALUES ($1, $2) RETURNING material_name_id, name_ru, name_en"
+            "INSERT INTO materials.material_names (material_name_uid, name_ru, name_en) VALUES ($1, $2, $3) RETURNING material_name_uid, name_ru, name_en"
         )
+        .bind(material_name.id().value())
         .bind(material_name.name_ru())
         .bind(material_name.name_en())
         .fetch_one(&self.pool)
@@ -86,9 +88,9 @@ impl MaterialNameBehavior for PostgresMaterialNameRepository {
         MaterialNameMapper::from_db(db_model)
     }
 
-    async fn exists(&self, id: &MaterialNameId) -> Result<bool, MaterialError> {
+    async fn exists(&self, id: &MaterialNameUid) -> Result<bool, MaterialError> {
         let count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM materials.material_names WHERE material_name_id = $1"
+            "SELECT COUNT(*) FROM materials.material_names WHERE material_name_uid = $1"
         )
         .bind(id.value())
         .fetch_one(&self.pool)
@@ -102,7 +104,7 @@ impl MaterialNameBehavior for PostgresMaterialNameRepository {
 
     async fn find_by_name(&self, name_ru: &str, name_en: &str) -> Result<Option<MaterialName>, MaterialError> {
         let db_model = sqlx::query_as::<_, MaterialNameDb>(
-            "SELECT material_name_id, name_ru, name_en FROM materials.material_names WHERE name_ru = $1 AND name_en = $2"
+            "SELECT material_name_uid, name_ru, name_en FROM materials.material_names WHERE name_ru = $1 AND name_en = $2"
         )
         .bind(name_ru)
         .bind(name_en)
