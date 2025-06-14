@@ -20,9 +20,9 @@ use crate::{
                 service::{NameService, NameServiceImpl},
             },
             types::{
-                handler::{TypeHandler, MaterialTypeHandlerV1},
-                repository::{TypeRepository, PostgresMaterialTypeRepository},
-                service::{TypeService, MaterialTypeServiceImpl},
+                handler::{TypeHandler, TypeHandlerV1},
+                repository::{TypeRepository, PostgresTypeRepository},
+                service::{TypeService, TypeServiceImpl},
             },
             thicknesses::{
                 handler::{ThicknessHandler, ThicknessHandlerV1},
@@ -80,11 +80,11 @@ impl AppState {
 
         // Создаем зависимости для material types feature
         let material_type_repository: Arc<dyn TypeRepository> =
-            Arc::new(PostgresMaterialTypeRepository::new(pool.clone()));
+            Arc::new(PostgresTypeRepository::new(pool.clone()));
         let material_type_service: Arc<dyn TypeService> =
-            Arc::new(MaterialTypeServiceImpl::new(material_type_repository.clone()));
+            Arc::new(TypeServiceImpl::new(material_type_repository.clone()));
         let material_type_handler: Arc<dyn TypeHandler> =
-            Arc::new(MaterialTypeHandlerV1::new(material_type_service.clone()));
+            Arc::new(TypeHandlerV1::new(material_type_service.clone()));
 
         // Создаем зависимости для material names feature
         let material_name_repository: Arc<dyn NameRepository> =

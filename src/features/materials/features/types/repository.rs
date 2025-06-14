@@ -1,11 +1,11 @@
 use sqlx::{PgPool, FromRow};
 use uuid::Uuid;
 use crate::features::materials::shared::errors::MaterialError;
-use super::entity::{MaterialType, MaterialTypeUid};
+use super::entity::{Type, TypeUid};
 
 /// Модель БД для типа материала
 #[derive(Debug, FromRow)]
-pub struct MaterialTypeDb {
+pub struct TypeDb {
     pub material_type_uid: Uuid,
     pub name_ru: String,
     pub name_en: String,
@@ -14,28 +14,28 @@ pub struct MaterialTypeDb {
 /// Трейт репозитория типов материалов
 #[async_trait::async_trait]
 pub trait TypeRepository: Send + Sync {
-    async fn get_by_id(&self, id: MaterialTypeUid) -> Result<MaterialType, MaterialError>;
-    async fn get_all(&self) -> Result<Vec<MaterialType>, MaterialError>;
-    async fn create(&self, material_type: &MaterialType) -> Result<MaterialType, MaterialError>;
-    async fn find_by_name(&self, name_ru: &str, name_en: &str) -> Result<Option<MaterialType>, MaterialError>;
-    async fn exists(&self, id: MaterialTypeUid) -> Result<bool, MaterialError>;
+    async fn get_by_id(&self, id: TypeUid) -> Result<Type, MaterialError>;
+    async fn get_all(&self) -> Result<Vec<Type>, MaterialError>;
+    async fn create(&self, material_type: &Type) -> Result<Type, MaterialError>;
+    async fn find_by_name(&self, name_ru: &str, name_en: &str) -> Result<Option<Type>, MaterialError>;
+    async fn exists(&self, id: TypeUid) -> Result<bool, MaterialError>;
 }
 
 /// PostgreSQL реализация репозитория
-pub struct PostgresMaterialTypeRepository {
+pub struct PostgresTypeRepository {
     pool: PgPool,
 }
 
-impl PostgresMaterialTypeRepository {
+impl PostgresTypeRepository {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
 }
 
 #[async_trait::async_trait]
-impl TypeRepository for PostgresMaterialTypeRepository {
-    async fn get_by_id(&self, id: MaterialTypeUid) -> Result<MaterialType, MaterialError> {
-        let row = sqlx::query_as::<_, MaterialTypeDb>(
+impl TypeRepository for PostgresTypeRepository {
+    async fn get_by_id(&self, id: TypeUid) -> Result<Type, MaterialError> {
+        let row = sqlx::query_as::<_, TypeDb>(
             "SELECT material_type_uid, name_ru, name_en FROM materials.material_types WHERE material_type_uid = $1"
         )
         .bind(id.as_uuid())
@@ -50,15 +50,15 @@ impl TypeRepository for PostgresMaterialTypeRepository {
             },
         })?;
 
-        MaterialType::from_db(
-            MaterialTypeUid::from_uuid(row.material_type_uid),
+        Type::from_db(
+            TypeUid::from_uuid(row.material_type_uid),
             row.name_ru,
             row.name_en,
         )
     }
 
-    async fn get_all(&self) -> Result<Vec<MaterialType>, MaterialError> {
-        let rows = sqlx::query_as::<_, MaterialTypeDb>(
+    async fn get_all(&self) -> Result<Vec<Type>, MaterialError> {
+        let rows = sqlx::query_as::<_, TypeDb>(
             "SELECT material_type_uid, name_ru, name_en FROM materials.material_types ORDER BY name_ru"
         )
         .fetch_all(&self.pool)
@@ -68,15 +68,15 @@ impl TypeRepository for PostgresMaterialTypeRepository {
         })?;
 
         rows.into_iter()
-            .map(|row| MaterialType::from_db(
-                MaterialTypeUid::from_uuid(row.material_type_uid),
+            .map(|row| Type::from_db(
+                TypeUid::from_uuid(row.material_type_uid),
                 row.name_ru,
                 row.name_en,
             ))
             .collect()
     }
 
-    async fn create(&self, material_type: &MaterialType) -> Result<MaterialType, MaterialError> {
+    async fn create(&self, material_type: &Type) -> Result<Type, MaterialError> {
         // Проверяем дубликаты
         if let Ok(Some(_)) = self.find_by_name(material_type.name_ru(), material_type.name_en()).await {
             return Err(MaterialError::DuplicateError {
@@ -85,7 +85,7 @@ impl TypeRepository for PostgresMaterialTypeRepository {
             });
         }
 
-        let row = sqlx::query_as::<_, MaterialTypeDb>(
+        let row = sqlx::query_as::<_, TypeDb>(
             "INSERT INTO materials.material_types (material_type_uid, name_ru, name_en) 
              VALUES ($1, $2, $3) 
              RETURNING material_type_uid, name_ru, name_en"
@@ -99,15 +99,15 @@ impl TypeRepository for PostgresMaterialTypeRepository {
             message: format!("Ошибка создания типа материала: {}", e),
         })?;
 
-        MaterialType::from_db(
-            MaterialTypeUid::from_uuid(row.material_type_uid),
+        Type::from_db(
+            TypeUid::from_uuid(row.material_type_uid),
             row.name_ru,
             row.name_en,
         )
     }
 
-    async fn find_by_name(&self, name_ru: &str, name_en: &str) -> Result<Option<MaterialType>, MaterialError> {
-        let row = sqlx::query_as::<_, MaterialTypeDb>(
+    async fn find_by_name(&self, name_ru: &str, name_en: &str) -> Result<Option<Type>, MaterialError> {
+        let row = sqlx::query_as::<_, TypeDb>(
             "SELECT material_type_uid, name_ru, name_en FROM materials.material_types 
              WHERE name_ru = $1 AND name_en = $2"
         )
@@ -120,8 +120,8 @@ impl TypeRepository for PostgresMaterialTypeRepository {
         })?;
 
         match row {
-            Some(row) => Ok(Some(MaterialType::from_db(
-                MaterialTypeUid::from_uuid(row.material_type_uid),
+            Some(row) => Ok(Some(Type::from_db(
+                TypeUid::from_uuid(row.material_type_uid),
                 row.name_ru,
                 row.name_en,
             )?)),
@@ -129,7 +129,7 @@ impl TypeRepository for PostgresMaterialTypeRepository {
         }
     }
 
-    async fn exists(&self, id: MaterialTypeUid) -> Result<bool, MaterialError> {
+    async fn exists(&self, id: TypeUid) -> Result<bool, MaterialError> {
         let count: i64 = sqlx::query_scalar(
             "SELECT COUNT(*) FROM materials.material_types WHERE material_type_uid = $1"
         )
