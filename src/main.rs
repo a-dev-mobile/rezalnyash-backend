@@ -97,6 +97,15 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             }),
         )
 
+        // === MATERIALS ENDPOINT - NEW ===
+        .route(
+            "/api/v1/materials",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move || async move { app_state.material_handler.get_all_materials().await }
+            }),
+        )
+
         // === MATERIAL TYPES ENDPOINTS ===
         .route(
             "/api/v1/materials/types",

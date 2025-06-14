@@ -2,33 +2,44 @@ use std::sync::Arc;
 
 use crate::{
     features::{
-        // Material types feature
+        // Health feature
         health::{
             handler::{HealthHandler, HealthHandlerV1},
             service::{HealthService, HealthServiceImpl},
         },
 
         materials::features::{
+            // Materials feature - NEW
+            materials::{
+                handler::{MaterialHandler, MaterialHandlerV1},
+                repository::{MaterialRepository, PostgresMaterialRepository},
+                service::{MaterialService, MaterialServiceImpl},
+            },
+            // Heights feature
             heights::{
                 handler::{HeightHandler, HeightHandlerV1},
                 repository::{HeightRepository, PostgresHeightRepository},
                 service::{HeightService, HeightServiceImpl},
             },
+            // Names feature
             names::{
                 handler::{NameHandler, HandlerV1},
                 repository::{NameRepository, PostgresNameRepository},
                 service::{NameService, NameServiceImpl},
             },
+            // Types feature
             types::{
                 handler::{TypeHandler, TypeHandlerV1},
                 repository::{TypeRepository, PostgresTypeRepository},
                 service::{TypeService, TypeServiceImpl},
             },
+            // Thicknesses feature
             thicknesses::{
                 handler::{ThicknessHandler, ThicknessHandlerV1},
                 repository::{PostgresThicknessRepository, ThicknessRepository},
                 service::{ThicknessService, ThicknessServiceImpl},
             },
+            // Widths feature
             widths::{
                 handler::{WidthHandler, WidthHandlerV1},
                 repository::{PostgresWidthRepository, WidthRepository},
@@ -42,6 +53,11 @@ use crate::{
 pub struct AppState {
     pub settings: Arc<AppSettings>,
     pub postgres_service: Arc<PostgresService>,
+
+    // Materials feature dependencies - NEW
+    pub material_handler: Arc<dyn MaterialHandler>,
+    pub material_service: Arc<dyn MaterialService>,
+    pub material_repository: Arc<dyn MaterialRepository>,
 
     // Material types feature dependencies
     pub material_type_handler: Arc<dyn TypeHandler>,
@@ -77,6 +93,14 @@ impl AppState {
     pub async fn new(settings: Arc<AppSettings>, postgres_service: Arc<PostgresService>) -> Self {
         // Получаем pool из postgres_service
         let pool = postgres_service.connection.pool().clone();
+
+        // Создаем зависимости для materials feature - NEW
+        let material_repository: Arc<dyn MaterialRepository> =
+            Arc::new(PostgresMaterialRepository::new(pool.clone()));
+        let material_service: Arc<dyn MaterialService> =
+            Arc::new(MaterialServiceImpl::new(material_repository.clone()));
+        let material_handler: Arc<dyn MaterialHandler> =
+            Arc::new(MaterialHandlerV1::new(material_service.clone()));
 
         // Создаем зависимости для material types feature
         let material_type_repository: Arc<dyn TypeRepository> =
@@ -118,6 +142,11 @@ impl AppState {
         Self {
             settings,
             postgres_service,
+            // Materials feature - NEW
+            material_handler,
+            material_service,
+            material_repository,
+            // Existing features
             material_type_handler,
             material_type_service,
             material_type_repository,
