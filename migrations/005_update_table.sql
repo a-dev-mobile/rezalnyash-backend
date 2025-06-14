@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Таблица типов материалов
 CREATE TABLE materials.material_types (
-    type_uid UUID PRIMARY KEY,
+    material_type_uid UUID PRIMARY KEY,
     name_ru VARCHAR(255) NOT NULL,
     name_en VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -73,7 +73,7 @@ CREATE TABLE materials.common_usages (
 -- Основная таблица материалов (связывает все таблицы)
 CREATE TABLE materials.materials (
     material_uid UUID PRIMARY KEY,
-    type_uid UUID NOT NULL,
+    material_type_uid UUID NOT NULL,
     grain_direction_uid UUID,
     width_uid UUID,
     height_uid UUID,
@@ -83,7 +83,7 @@ CREATE TABLE materials.materials (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
-    FOREIGN KEY (type_uid) REFERENCES materials.material_types(type_uid),
+    FOREIGN KEY (material_type_uid) REFERENCES materials.material_types(material_type_uid),
     FOREIGN KEY (grain_direction_uid) REFERENCES materials.grain_directions(grain_direction_uid),
     FOREIGN KEY (width_uid) REFERENCES materials.widths(width_uid),
     FOREIGN KEY (height_uid) REFERENCES materials.heights(height_uid),
@@ -93,7 +93,7 @@ CREATE TABLE materials.materials (
 );
 
 -- Индексы для оптимизации запросов
-CREATE INDEX idx_materials_type ON materials.materials(type_uid);
+CREATE INDEX idx_materials_type ON materials.materials(material_type_uid);
 CREATE INDEX idx_materials_grain ON materials.materials(grain_direction_uid);
 CREATE INDEX idx_materials_width ON materials.materials(width_uid);
 CREATE INDEX idx_materials_height ON materials.materials(height_uid);
@@ -142,7 +142,7 @@ CREATE TRIGGER update_materials_updated_at BEFORE UPDATE ON materials.materials 
 -- Примеры данных с UUID (эти UUID будут генерироваться на бэкенде)
 
 -- Типы материалов
-INSERT INTO materials.material_types (type_uid, name_ru, name_en) VALUES
+INSERT INTO materials.material_types (material_type_uid, name_ru, name_en) VALUES
 ('550e8400-e29b-41d4-a716-446655440001', 'Древесина', 'Wood'),
 ('550e8400-e29b-41d4-a716-446655440002', 'Фанера', 'Plywood'),
 ('550e8400-e29b-41d4-a716-446655440003', 'МДФ', 'MDF'),
@@ -204,7 +204,7 @@ INSERT INTO materials.common_usages (common_usage_uid, common_usage_ru, common_u
 -- Примеры материалов
 INSERT INTO materials.materials (
     material_uid,
-    type_uid, 
+    material_type_uid, 
     grain_direction_uid, 
     width_uid, 
     height_uid, 
@@ -222,7 +222,7 @@ INSERT INTO materials.materials (
 CREATE VIEW materials.v_materials AS
 SELECT 
     m.material_uid,
-    mt.type_uid,
+    mt.material_type_uid,
     mt.name_ru as material_type_ru,
     mt.name_en as material_type_en,
     mn.material_name_uid,
@@ -243,7 +243,7 @@ SELECT
     m.created_at,
     m.updated_at
 FROM materials.materials m
-LEFT JOIN materials.material_types mt ON m.type_uid = mt.type_uid
+LEFT JOIN materials.material_types mt ON m.material_type_uid = mt.material_type_uid
 LEFT JOIN materials.material_names mn ON m.material_name_uid = mn.material_name_uid
 LEFT JOIN materials.widths w ON m.width_uid = w.width_uid
 LEFT JOIN materials.heights h ON m.height_uid = h.height_uid
@@ -270,7 +270,7 @@ ORDER BY w.width, h.height, t.thickness;
 CREATE VIEW materials.v_references AS
 SELECT 
     'material_types' as table_name,
-    type_uid::text as uid,
+    material_type_uid::text as uid,
     name_ru,
     name_en,
     NULL as description_ru,
@@ -350,10 +350,10 @@ DECLARE
     v_common_usage_exists BOOLEAN;
 BEGIN
     -- Проверить существование типа материала
-    SELECT EXISTS(SELECT 1 FROM materials.material_types WHERE type_uid = p_material_type_uid) INTO v_material_type_exists;
+    SELECT EXISTS(SELECT 1 FROM materials.material_types WHERE material_type_uid = p_material_type_uid) INTO v_material_type_exists;
     
     IF NOT v_material_type_exists THEN
-        INSERT INTO materials.material_types (type_uid, name_ru, name_en) 
+        INSERT INTO materials.material_types (material_type_uid, name_ru, name_en) 
         VALUES (p_material_type_uid, p_material_type_ru, p_material_type_en);
     END IF;
     
@@ -402,7 +402,7 @@ BEGIN
     -- Создать материал
     INSERT INTO materials.materials (
         material_uid,
-        type_uid, 
+        material_type_uid, 
         grain_direction_uid, 
         width_uid, 
         height_uid, 
@@ -442,7 +442,7 @@ $$ LANGUAGE plpgsql;
 /*
 SELECT materials.add_material(
     'dd0e8400-e29b-41d4-a716-446655440001'::UUID, -- material_uid
-    '550e8400-e29b-41d4-a716-446655440001'::UUID, -- type_uid (существующий)
+    '550e8400-e29b-41d4-a716-446655440001'::UUID, -- material_type_uid (существующий)
     'Древесина', 'Wood', -- тип материала
     'ee0e8400-e29b-41d4-a716-446655440001'::UUID, -- material_name_uid
     'Береза', 'Birch', -- название материала

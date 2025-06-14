@@ -6,7 +6,7 @@ use super::entity::{Name, NameUid};
 /// Модель БД для названия материала
 #[derive(Debug, FromRow)]
 pub struct NameDb {
-    pub material_name_uid: Uuid,
+    pub name_uid: Uuid,
     pub name_ru: String,
     pub name_en: String,
 }
@@ -36,7 +36,7 @@ impl PostgresNameRepository {
 impl NameRepository for PostgresNameRepository {
     async fn get_by_id(&self, id: NameUid) -> Result<Name, MaterialError> {
         let row = sqlx::query_as::<_, NameDb>(
-            "SELECT material_name_uid, name_ru, name_en FROM materials.material_names WHERE material_name_uid = $1"
+            "SELECT name_uid, name_ru, name_en FROM materials.names WHERE name_uid = $1"
         )
         .bind(id.as_uuid())
         .fetch_one(&self.pool)
@@ -51,7 +51,7 @@ impl NameRepository for PostgresNameRepository {
         })?;
 
         Name::from_db(
-            NameUid::from_uuid(row.material_name_uid),
+            NameUid::from_uuid(row.name_uid),
             row.name_ru,
             row.name_en,
         )
@@ -59,7 +59,7 @@ impl NameRepository for PostgresNameRepository {
 
     async fn get_all(&self) -> Result<Vec<Name>, MaterialError> {
         let rows = sqlx::query_as::<_, NameDb>(
-            "SELECT material_name_uid, name_ru, name_en FROM materials.material_names ORDER BY name_ru"
+            "SELECT name_uid, name_ru, name_en FROM materials.names ORDER BY name_ru"
         )
         .fetch_all(&self.pool)
         .await
@@ -69,7 +69,7 @@ impl NameRepository for PostgresNameRepository {
 
         rows.into_iter()
             .map(|row| Name::from_db(
-                NameUid::from_uuid(row.material_name_uid),
+                NameUid::from_uuid(row.name_uid),
                 row.name_ru,
                 row.name_en,
             ))
@@ -86,9 +86,9 @@ impl NameRepository for PostgresNameRepository {
         }
 
         let row = sqlx::query_as::<_, NameDb>(
-            "INSERT INTO materials.material_names (material_name_uid, name_ru, name_en) 
+            "INSERT INTO materials.names (name_uid, name_ru, name_en) 
              VALUES ($1, $2, $3) 
-             RETURNING material_name_uid, name_ru, name_en"
+             RETURNING name_uid, name_ru, name_en"
         )
         .bind(material_name.id().as_uuid())
         .bind(material_name.name_ru())
@@ -100,7 +100,7 @@ impl NameRepository for PostgresNameRepository {
         })?;
 
         Name::from_db(
-            NameUid::from_uuid(row.material_name_uid),
+            NameUid::from_uuid(row.name_uid),
             row.name_ru,
             row.name_en,
         )
@@ -108,7 +108,7 @@ impl NameRepository for PostgresNameRepository {
 
     async fn find_by_name(&self, name_ru: &str, name_en: &str) -> Result<Option<Name>, MaterialError> {
         let row = sqlx::query_as::<_, NameDb>(
-            "SELECT material_name_uid, name_ru, name_en FROM materials.material_names 
+            "SELECT name_uid, name_ru, name_en FROM materials.names 
              WHERE name_ru = $1 AND name_en = $2"
         )
         .bind(name_ru)
@@ -121,7 +121,7 @@ impl NameRepository for PostgresNameRepository {
 
         match row {
             Some(row) => Ok(Some(Name::from_db(
-                NameUid::from_uuid(row.material_name_uid),
+                NameUid::from_uuid(row.name_uid),
                 row.name_ru,
                 row.name_en,
             )?)),
@@ -131,7 +131,7 @@ impl NameRepository for PostgresNameRepository {
 
     async fn exists(&self, id: NameUid) -> Result<bool, MaterialError> {
         let count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM materials.material_names WHERE material_name_uid = $1"
+            "SELECT COUNT(*) FROM materials.names WHERE name_uid = $1"
         )
         .bind(id.as_uuid())
         .fetch_one(&self.pool)
