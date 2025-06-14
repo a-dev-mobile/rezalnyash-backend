@@ -1,6 +1,9 @@
-use crate::features::materials::handlers::{
-    traits::{MaterialNameHandler, MaterialTypeHandler},
-    v1::{MaterialNameHandlerV1, MaterialTypeHandlerV1},
+use crate::features::materials::{
+    handlers::{
+        traits::{MaterialNameHandler, MaterialTypeHandler},
+        v1::{MaterialNameHandlerV1, MaterialTypeHandlerV1},
+    },
+    HeightHandler, ThicknessHandler, WidthHandler,
 };
 use axum::{
     routing::{get, post},
@@ -61,8 +64,89 @@ pub fn material_name_routes(handler: Arc<dyn MaterialNameHandler>) -> Router {
 pub fn materials_routes_v1(
     material_type_handler: Arc<dyn MaterialTypeHandler>,
     material_name_handler: Arc<dyn MaterialNameHandler>,
+    width_handler: Arc<dyn WidthHandler>,
+    height_handler: Arc<dyn HeightHandler>,
+    thickness_handler: Arc<dyn ThicknessHandler>,
 ) -> Router {
     Router::new()
         .nest("/types", material_type_routes(material_type_handler))
         .nest("/names", material_name_routes(material_name_handler))
+        .nest("/widths", width_routes(width_handler))
+        .nest("/heights", height_routes(height_handler))
+        .nest("/thicknesses", thickness_routes(thickness_handler))
+}
+
+pub fn width_routes(handler: Arc<dyn WidthHandler>) -> Router {
+    Router::new()
+        .route(
+            "/",
+            get({
+                let handler = Arc::clone(&handler);
+                move || async move { handler.get_all_widths().await }
+            }),
+        )
+        .route(
+            "/",
+            post({
+                let handler = Arc::clone(&handler);
+                move |payload| async move { handler.create_width(payload).await }
+            }),
+        )
+        .route(
+            "/{id}",
+            get({
+                let handler = Arc::clone(&handler);
+                move |path| async move { handler.get_width(path).await }
+            }),
+        )
+}
+
+pub fn height_routes(handler: Arc<dyn HeightHandler>) -> Router {
+    Router::new()
+        .route(
+            "/",
+            get({
+                let handler = Arc::clone(&handler);
+                move || async move { handler.get_all_heights().await }
+            }),
+        )
+        .route(
+            "/",
+            post({
+                let handler = Arc::clone(&handler);
+                move |payload| async move { handler.create_height(payload).await }
+            }),
+        )
+        .route(
+            "/{id}",
+            get({
+                let handler = Arc::clone(&handler);
+                move |path| async move { handler.get_height(path).await }
+            }),
+        )
+}
+
+pub fn thickness_routes(handler: Arc<dyn ThicknessHandler>) -> Router {
+    Router::new()
+        .route(
+            "/",
+            get({
+                let handler = Arc::clone(&handler);
+                move || async move { handler.get_all_thicknesses().await }
+            }),
+        )
+        .route(
+            "/",
+            post({
+                let handler = Arc::clone(&handler);
+                move |payload| async move { handler.create_thickness(payload).await }
+            }),
+        )
+        .route(
+            "/{id}",
+            get({
+                let handler = Arc::clone(&handler);
+                move |path| async move { handler.get_thickness(path).await }
+            }),
+        )
 }
