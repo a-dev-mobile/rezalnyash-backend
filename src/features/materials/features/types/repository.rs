@@ -6,7 +6,7 @@ use super::entity::{Type, TypeUid};
 /// Модель БД для типа материала
 #[derive(Debug, FromRow)]
 pub struct TypeDb {
-    pub material_type_uid: Uuid,
+    pub type_uid: Uuid,
     pub name_ru: String,
     pub name_en: String,
 }
@@ -36,7 +36,7 @@ impl PostgresTypeRepository {
 impl TypeRepository for PostgresTypeRepository {
     async fn get_by_id(&self, id: TypeUid) -> Result<Type, MaterialError> {
         let row = sqlx::query_as::<_, TypeDb>(
-            "SELECT material_type_uid, name_ru, name_en FROM materials.material_types WHERE material_type_uid = $1"
+            "SELECT type_uid, name_ru, name_en FROM materials.types WHERE type_uid = $1"
         )
         .bind(id.as_uuid())
         .fetch_one(&self.pool)
@@ -51,7 +51,7 @@ impl TypeRepository for PostgresTypeRepository {
         })?;
 
         Type::from_db(
-            TypeUid::from_uuid(row.material_type_uid),
+            TypeUid::from_uuid(row.type_uid),
             row.name_ru,
             row.name_en,
         )
@@ -59,7 +59,7 @@ impl TypeRepository for PostgresTypeRepository {
 
     async fn get_all(&self) -> Result<Vec<Type>, MaterialError> {
         let rows = sqlx::query_as::<_, TypeDb>(
-            "SELECT material_type_uid, name_ru, name_en FROM materials.material_types ORDER BY name_ru"
+            "SELECT type_uid, name_ru, name_en FROM materials.types ORDER BY name_ru"
         )
         .fetch_all(&self.pool)
         .await
@@ -69,7 +69,7 @@ impl TypeRepository for PostgresTypeRepository {
 
         rows.into_iter()
             .map(|row| Type::from_db(
-                TypeUid::from_uuid(row.material_type_uid),
+                TypeUid::from_uuid(row.type_uid),
                 row.name_ru,
                 row.name_en,
             ))
@@ -86,9 +86,9 @@ impl TypeRepository for PostgresTypeRepository {
         }
 
         let row = sqlx::query_as::<_, TypeDb>(
-            "INSERT INTO materials.material_types (material_type_uid, name_ru, name_en) 
+            "INSERT INTO materials.types (type_uid, name_ru, name_en) 
              VALUES ($1, $2, $3) 
-             RETURNING material_type_uid, name_ru, name_en"
+             RETURNING type_uid, name_ru, name_en"
         )
         .bind(material_type.id().as_uuid())
         .bind(material_type.name_ru())
@@ -100,7 +100,7 @@ impl TypeRepository for PostgresTypeRepository {
         })?;
 
         Type::from_db(
-            TypeUid::from_uuid(row.material_type_uid),
+            TypeUid::from_uuid(row.type_uid),
             row.name_ru,
             row.name_en,
         )
@@ -108,7 +108,7 @@ impl TypeRepository for PostgresTypeRepository {
 
     async fn find_by_name(&self, name_ru: &str, name_en: &str) -> Result<Option<Type>, MaterialError> {
         let row = sqlx::query_as::<_, TypeDb>(
-            "SELECT material_type_uid, name_ru, name_en FROM materials.material_types 
+            "SELECT type_uid, name_ru, name_en FROM materials.types 
              WHERE name_ru = $1 AND name_en = $2"
         )
         .bind(name_ru)
@@ -121,7 +121,7 @@ impl TypeRepository for PostgresTypeRepository {
 
         match row {
             Some(row) => Ok(Some(Type::from_db(
-                TypeUid::from_uuid(row.material_type_uid),
+                TypeUid::from_uuid(row.type_uid),
                 row.name_ru,
                 row.name_en,
             )?)),
@@ -131,7 +131,7 @@ impl TypeRepository for PostgresTypeRepository {
 
     async fn exists(&self, id: TypeUid) -> Result<bool, MaterialError> {
         let count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM materials.material_types WHERE material_type_uid = $1"
+            "SELECT COUNT(*) FROM materials.types WHERE type_uid = $1"
         )
         .bind(id.as_uuid())
         .fetch_one(&self.pool)
