@@ -5,8 +5,7 @@ use axum::{
 use serde::Serialize;
 use serde_json::Value;
 
-use super::types::AppError;
-
+use crate::features::health::domain::errors::types::HealthError;
 
 #[derive(Serialize)]
 struct ErrorResponse {
@@ -20,7 +19,8 @@ struct ErrorResponse {
 fn is_empty_details(details: &Value) -> bool {
     details.as_object().is_none_or(|obj| obj.is_empty())
 }
-impl IntoResponse for AppError {
+
+impl IntoResponse for HealthError {
     fn into_response(self) -> Response {
         let error_response = ErrorResponse {
             code: self.error_code(),

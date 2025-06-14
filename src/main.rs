@@ -1,5 +1,3 @@
-mod api;
-
 mod features;
 mod shared;
 use axum::{routing::get, Router};
@@ -9,10 +7,11 @@ use tracing::{debug, error, info, warn};
 use std::{net::SocketAddr, sync::Arc};
 
 use crate::{
-    features::materials::MaterialsRoutesBuilder,
+    features::{health::HealthRoutesBuilder, materials::MaterialsRoutesBuilder},
     shared::{
         database::{migrations::run_migrations, service::PostgresService},
-        logger, middleware, setting::models::{app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState},
+        logger, middleware,
+        setting::models::{app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState},
     },
 };
 
@@ -83,9 +82,7 @@ fn create_application_router(app_state: Arc<AppState>, postgres_service: Arc<Pos
 
     Router::new()
         .layer(middleware::create_cors())
-        .route("/api-health", get(api::v1::health_api))
-        .route("/db-health", get(api::v1::health_db))
-        .route("/test-db-error", get(api::v1::test_db_error))
+        .nest("/api/v1/health", HealthRoutesBuilder::build_v1(pool.clone()))
         .nest("/api/v1/materials", MaterialsRoutesBuilder::build_v1(pool))
         .layer(axum::Extension(app_state.clone()))
         .layer(middleware::create_trace())
