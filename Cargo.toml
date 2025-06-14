@@ -14,6 +14,9 @@ tokio = { version = "1.45.1", features = ["full"] }
 tower = "0.5.2"
 tower-http = { version = "0.6.6", features = ["trace", "cors"] }
 
+# Misc utilities
+async-trait = "0.1.88"
+
 # Database
 sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "migrate", "json", "uuid", "chrono"] }
 
@@ -21,6 +24,7 @@ sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "mig
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 toml = "0.8.23"
+thiserror = "2.0.12"
 
 # UUID support
 uuid = { version = "1.17.0", features = ["v4", "serde"] }

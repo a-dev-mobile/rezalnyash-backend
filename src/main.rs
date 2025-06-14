@@ -1,27 +1,32 @@
 // src/main.rs
 
 mod api;
-mod database;
+
 mod error;
+mod features;
 mod logger;
 mod middleware;
-mod models;
-mod services;
+
 mod setting;
+mod shared;
 
 mod utils;
 
-use axum::{routing::{get, post, delete}, Router};
+use axum::{
+    routing::get,
+    Router,
+};
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, warn};
 
-use setting::models::{
-    app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState,
-};
+use setting::models::{app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState};
 
 use std::{net::SocketAddr, sync::Arc};
 
-use crate::database::{migrations::run_migrations, service::PostgresService};
+use crate::{
+
+    features::materials::MaterialsRoutesBuilder, shared::database::{migrations::run_migrations, service::PostgresService},
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -36,18 +41,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Connect to databases
     let postgres_service = Arc::new(initialize_database(settings.clone()).await?);
 
-    let server_address = format!(
-        "{}:{}",
-        settings.env.server_address, settings.env.server_port
-    )
-    .parse()
-    .expect("Invalid server address configuration");
+    let server_address = format!("{}:{}", settings.env.server_address, settings.env.server_port)
+        .parse()
+        .expect("Invalid server address configuration");
 
     // Create application state with all services
-    let app_state = Arc::new(AppState::new(settings.clone(), postgres_service).await);
+    let app_state = Arc::new(AppState::new(settings.clone(), postgres_service.clone()).await);
 
     // Create API router
-    let app_router = create_application_router(app_state);
+    let app_router = create_application_router(app_state, postgres_service);
 
     // Start HTTP server
     start_http_server(app_router, server_address).await;
@@ -87,15 +89,17 @@ async fn init_app() -> AppSettings {
 }
 
 /// Creates the application router with all API endpoints and middleware
-fn create_application_router(app_state: Arc<AppState>) -> Router {
+fn create_application_router(app_state: Arc<AppState>, postgres_service: Arc<PostgresService>) -> Router {
+    // Получаем pool из postgres_service
+    let pool = postgres_service.connection.pool().clone();
+
     Router::new()
         .layer(middleware::create_cors())
         .route("/api-health", get(api::v1::health_api))
         .route("/db-health", get(api::v1::health_db))
         .route("/test-db-error", get(api::v1::test_db_error))
-        // ДОБАВИТЬ ЭТИ МАРШРУТЫ:
-        .route("/api/v1/materials", get(api::v1::get_materials))
-        .route("/api/v1/materials/health", get(api::v1::materials_health_check))
+        .nest("/api/v1/materials", MaterialsRoutesBuilder::build_v1(pool))
+
         .layer(axum::Extension(app_state.clone()))
         .layer(middleware::create_trace())
 }
@@ -120,9 +124,7 @@ async fn start_http_server(app: Router, addr: SocketAddr) {
     }
 }
 
-async fn initialize_database(
-    settings: Arc<AppSettings>,
-) -> Result<PostgresService, Box<dyn std::error::Error>> {
+async fn initialize_database(settings: Arc<AppSettings>) -> Result<PostgresService, Box<dyn std::error::Error>> {
     info!("Initializing database connections...");
 
     let postgres_service = PostgresService::new(&settings).await?;
