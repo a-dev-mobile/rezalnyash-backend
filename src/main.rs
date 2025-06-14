@@ -97,6 +97,52 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             }),
         )
 
+        // === MATERIAL TYPES ENDPOINTS ===
+        .route(
+            "/api/v1/materials/types",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move || async move { app_state.material_type_handler.get_all_material_types().await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/types",
+            post({
+                let app_state = Arc::clone(&app_state);
+                move |payload| async move { app_state.material_type_handler.create_material_type(payload).await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/types/{id}",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move |path| async move { app_state.material_type_handler.get_material_type(path).await }
+            }),
+        )
+
+        // === MATERIAL NAMES ENDPOINTS ===
+        .route(
+            "/api/v1/materials/names",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move || async move { app_state.material_name_handler.get_all_material_names().await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/names",
+            post({
+                let app_state = Arc::clone(&app_state);
+                move |payload| async move { app_state.material_name_handler.create_material_name(payload).await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/names/{id}",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move |path| async move { app_state.material_name_handler.get_material_name(path).await }
+            }),
+        )
+
         // === WIDTHS ENDPOINTS ===
         .route(
             "/api/v1/materials/widths",
@@ -119,64 +165,53 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
                 move |path| async move { app_state.width_handler.get_width(path).await }
             }),
         )
-        // === MATERIALS ENDPOINTS (будущие) ===
-        // .route("/api/v1/materials", get({
-        //     let app_state = Arc::clone(&app_state);
-        //     move || async move {
-        //         app_state.material_handler.get_all_materials().await
-        //     }
-        // }))
-        // .route("/api/v1/materials", post({
-        //     let app_state = Arc::clone(&app_state);
-        //     move |payload| async move {
-        //         app_state.material_handler.create_material(payload).await
-        //     }
-        // }))
-        // .route("/api/v1/materials/{id}", get({
-        //     let app_state = Arc::clone(&app_state);
-        //     move |path| async move {
-        //         app_state.material_handler.get_material(path).await
-        //     }
-        // }))
-        // === MATERIAL NAMES ENDPOINTS (будущие) ===
-        // .route("/api/v1/materials/names", get({
-        //     let app_state = Arc::clone(&app_state);
-        //     move || async move {
-        //         app_state.material_name_handler.get_all_material_names().await
-        //     }
-        // }))
-        // .route("/api/v1/materials/names", post({
-        //     let app_state = Arc::clone(&app_state);
-        //     move |payload| async move {
-        //         app_state.material_name_handler.create_material_name(payload).await
-        //     }
-        // }))
-        // === HEIGHTS ENDPOINTS (будущие) ===
-        // .route("/api/v1/heights", get({
-        //     let app_state = Arc::clone(&app_state);
-        //     move || async move {
-        //         app_state.height_handler.get_all_heights().await
-        //     }
-        // }))
-        // .route("/api/v1/heights", post({
-        //     let app_state = Arc::clone(&app_state);
-        //     move |payload| async move {
-        //         app_state.height_handler.create_height(payload).await
-        //     }
-        // }))
-        // === THICKNESS ENDPOINTS (будущие) ===
-        // .route("/api/v1/thickness", get({
-        //     let app_state = Arc::clone(&app_state);
-        //     move || async move {
-        //         app_state.thickness_handler.get_all_thickness().await
-        //     }
-        // }))
-        // .route("/api/v1/thickness", post({
-        //     let app_state = Arc::clone(&app_state);
-        //     move |payload| async move {
-        //         app_state.thickness_handler.create_thickness(payload).await
-        //     }
-        // }))
+
+        // === HEIGHTS ENDPOINTS ===
+        .route(
+            "/api/v1/materials/heights",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move || async move { app_state.height_handler.get_all_heights().await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/heights",
+            post({
+                let app_state = Arc::clone(&app_state);
+                move |payload| async move { app_state.height_handler.create_height(payload).await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/heights/{id}",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move |path| async move { app_state.height_handler.get_height(path).await }
+            }),
+        )
+
+        // === THICKNESS ENDPOINTS ===
+        .route(
+            "/api/v1/materials/thicknesses",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move || async move { app_state.thickness_handler.get_all_thicknesses().await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/thicknesses",
+            post({
+                let app_state = Arc::clone(&app_state);
+                move |payload| async move { app_state.thickness_handler.create_thickness(payload).await }
+            }),
+        )
+        .route(
+            "/api/v1/materials/thicknesses/{id}",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move |path| async move { app_state.thickness_handler.get_thickness(path).await }
+            }),
+        )
+
         // Добавляем состояние приложения как Extension
         .layer(axum::Extension(app_state))
 }

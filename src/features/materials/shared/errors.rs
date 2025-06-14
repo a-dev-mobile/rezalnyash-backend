@@ -4,10 +4,9 @@ use axum::{
     Json,
 };
 use serde::Serialize;
-use serde_json::json;
 use std::{error::Error, fmt};
 
-/// Общий тип результата для всех материальных фич
+/// Общий тип результата для всех фич
 pub type MaterialResult<T> = Result<T, MaterialError>;
 
 /// Перечисление всех возможных ошибок
