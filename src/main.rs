@@ -102,7 +102,7 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             "/api/v1/materials",
             get({
                 let app_state = Arc::clone(&app_state);
-                move || async move { app_state.material_handler.get_all_materials().await }
+                move |query| async move { app_state.material_handler.get_all_materials(query).await }
             }),
         )
 

@@ -2,6 +2,7 @@
 use std::sync::Arc;
 use serde::Serialize;
 use crate::features::materials::shared::errors::{MaterialError, MaterialResult};
+use crate::shared::utils::language::{Language, LanguageUtils};
 use super::{entity::{Material, StandardSize}, repository::MaterialRepository};
 
 /// DTO для стандартного размера
@@ -25,18 +26,28 @@ impl From<&StandardSize> for StandardSizeDto {
 pub struct MaterialDto {
     #[serde(rename = "type")]
     pub material_type: String,
-    pub name_ru: String,
-    pub name_en: String,
+    pub name: String,
     pub standard_sizes: Vec<StandardSizeDto>,
     pub default_thicknesses: Vec<f64>,
 }
 
 impl MaterialDto {
-    pub fn from_entity(material: &Material) -> Self {
+    pub fn from_entity(material: &Material, language: &Language) -> Self {
+        let material_type = LanguageUtils::localize_text(
+            language,
+            material.type_name_ru(),
+            material.type_name_en(),
+        );
+        
+        let name = LanguageUtils::localize_text(
+            language,
+            material.name_ru(),
+            material.name_en(),
+        );
+
         Self {
-            material_type: format!("{} / {}", material.type_name_ru(), material.type_name_en()),
-            name_ru: material.name_ru().to_string(),
-            name_en: material.name_en().to_string(),
+            material_type,
+            name,
             standard_sizes: material
                 .standard_sizes()
                 .iter()
@@ -56,7 +67,7 @@ pub struct MaterialsListDto {
 /// Трейт сервиса материалов
 #[async_trait::async_trait]
 pub trait MaterialService: Send + Sync {
-    async fn get_all_materials(&self) -> MaterialResult<MaterialsListDto>;
+    async fn get_all_materials(&self, language: &Language) -> MaterialResult<MaterialsListDto>;
 }
 
 /// Реализация сервиса материалов
@@ -72,11 +83,11 @@ impl MaterialServiceImpl {
 
 #[async_trait::async_trait]
 impl MaterialService for MaterialServiceImpl {
-    async fn get_all_materials(&self) -> Result<MaterialsListDto, MaterialError> {
+    async fn get_all_materials(&self, language: &Language) -> Result<MaterialsListDto, MaterialError> {
         let materials = self.repository.get_all().await?;
         let material_dtos: Vec<MaterialDto> = materials
             .iter()
-            .map(MaterialDto::from_entity)
+            .map(|material| MaterialDto::from_entity(material, language))
             .collect();
 
         Ok(MaterialsListDto {
