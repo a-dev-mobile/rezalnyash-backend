@@ -12,13 +12,10 @@ use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, warn};
 
-use crate::{
-    features::health::HealthRoutesBuilder,
-    shared::{
-        database::{migrations::run_migrations, service::PostgresService},
-        logger, middleware,
-        setting::models::{app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState},
-    },
+use crate::shared::{
+    database::{migrations::run_migrations, service::PostgresService},
+    logger, middleware,
+    setting::models::{app_config::AppConfig, app_env::AppEnv, app_setting::AppSettings, app_state::AppState},
 };
 
 // Дополнительные импорты для JSON и времени
@@ -92,27 +89,14 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
         .layer(middleware::create_cors())
         .layer(middleware::create_trace())
         // === HEALTH ENDPOINTS ===
-        // .route(
-        //     "/api/v1/health",
-        //     get({
-        //         let app_state = Arc::clone(&app_state);
-        //         move || async move { health_check(app_state).await }
-        //     }),
-        // )
-        // .route(
-        //     "/api/v1/health/db",
-        //     get({
-        //         let app_state = Arc::clone(&app_state);
-        //         move || async move { health_db_check(app_state).await }
-        //     }),
-        // )
-        // .route(
-        //     "/api/v1/health/detailed",
-        //     get({
-        //         let app_state = Arc::clone(&app_state);
-        //         move || async move { health_detailed_check(app_state).await }
-        //     }),
-        // )
+        .route(
+            "/health",
+            get({
+                let app_state = Arc::clone(&app_state);
+                move || async move { app_state.health_handler.get_health().await }
+            }),
+        )
+
         // === WIDTHS ENDPOINTS ===
         .route(
             "/api/v1/materials/widths",
@@ -196,7 +180,6 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
         // Добавляем состояние приложения как Extension
         .layer(axum::Extension(app_state))
 }
-
 
 /// Starts the HTTP server on the specified address
 async fn start_http_server(app: Router, addr: SocketAddr) {
