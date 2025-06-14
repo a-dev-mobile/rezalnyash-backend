@@ -2,7 +2,7 @@ use uuid::Uuid;
 use std::sync::Arc;
 use serde::{Serialize, Deserialize};
 use crate::features::materials::shared::errors::{MaterialError, MaterialResult};
-use super::{entity::{MaterialType, MaterialTypeUid}, repository::MaterialTypeRepository};
+use super::{entity::{MaterialType, MaterialTypeUid}, repository::TypeRepository};
 
 /// DTO для создания типа материала
 #[derive(Debug, Deserialize)]
@@ -31,37 +31,37 @@ impl MaterialTypeDto {
 
 /// Трейт сервиса типов материалов
 #[async_trait::async_trait]
-pub trait MaterialTypeService: Send + Sync {
-    async fn get_material_type(&self, id: Uuid) -> MaterialResult<MaterialTypeDto>;
-    async fn get_all_material_types(&self) -> MaterialResult<Vec<MaterialTypeDto>>;
-    async fn create_material_type(&self, dto: CreateMaterialTypeDto) -> MaterialResult<MaterialTypeDto>;
+pub trait TypeService: Send + Sync {
+    async fn get_type(&self, id: Uuid) -> MaterialResult<MaterialTypeDto>;
+    async fn get_all_types(&self) -> MaterialResult<Vec<MaterialTypeDto>>;
+    async fn create_type(&self, dto: CreateMaterialTypeDto) -> MaterialResult<MaterialTypeDto>;
     async fn material_type_exists(&self, id: Uuid) -> MaterialResult<bool>;
 }
 
 /// Реализация сервиса типов материалов
 pub struct MaterialTypeServiceImpl {
-    repository: Arc<dyn MaterialTypeRepository>,
+    repository: Arc<dyn TypeRepository>,
 }
 
 impl MaterialTypeServiceImpl {
-    pub fn new(repository: Arc<dyn MaterialTypeRepository>) -> Self {
+    pub fn new(repository: Arc<dyn TypeRepository>) -> Self {
         Self { repository }
     }
 }
 
 #[async_trait::async_trait]
-impl MaterialTypeService for MaterialTypeServiceImpl {
-    async fn get_material_type(&self, id: Uuid) -> Result<MaterialTypeDto, MaterialError> {
+impl TypeService for MaterialTypeServiceImpl {
+    async fn get_type(&self, id: Uuid) -> Result<MaterialTypeDto, MaterialError> {
         let material_type = self.repository.get_by_id(MaterialTypeUid::from_uuid(id)).await?;
         Ok(MaterialTypeDto::from_entity(&material_type))
     }
 
-    async fn get_all_material_types(&self) -> Result<Vec<MaterialTypeDto>, MaterialError> {
-        let material_types = self.repository.get_all().await?;
-        Ok(material_types.iter().map(MaterialTypeDto::from_entity).collect())
+    async fn get_all_types(&self) -> Result<Vec<MaterialTypeDto>, MaterialError> {
+        let types = self.repository.get_all().await?;
+        Ok(types.iter().map(MaterialTypeDto::from_entity).collect())
     }
 
-    async fn create_material_type(&self, dto: CreateMaterialTypeDto) -> Result<MaterialTypeDto, MaterialError> {
+    async fn create_type(&self, dto: CreateMaterialTypeDto) -> Result<MaterialTypeDto, MaterialError> {
         let material_type = MaterialType::new(dto.name_ru, dto.name_en)?;
         let created_material_type = self.repository.create(&material_type).await?;
         Ok(MaterialTypeDto::from_entity(&created_material_type))

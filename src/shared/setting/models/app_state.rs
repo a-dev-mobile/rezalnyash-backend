@@ -14,15 +14,15 @@ use crate::{
                 repository::{HeightRepository, PostgresHeightRepository},
                 service::{HeightService, HeightServiceImpl},
             },
-            material_names::{
-                handler::{MaterialNameHandler, MaterialNameHandlerV1},
-                repository::{MaterialNameRepository, PostgresMaterialNameRepository},
-                service::{MaterialNameService, MaterialNameServiceImpl},
+            names::{
+                handler::{NameHandler, HandlerV1},
+                repository::{NameRepository, PostgresNameRepository},
+                service::{NameService, NameServiceImpl},
             },
-            material_types::{
-                handler::{MaterialTypeHandler, MaterialTypeHandlerV1},
-                repository::{MaterialTypeRepository, PostgresMaterialTypeRepository},
-                service::{MaterialTypeService, MaterialTypeServiceImpl},
+            types::{
+                handler::{TypeHandler, MaterialTypeHandlerV1},
+                repository::{TypeRepository, PostgresMaterialTypeRepository},
+                service::{TypeService, MaterialTypeServiceImpl},
             },
             thicknesses::{
                 handler::{ThicknessHandler, ThicknessHandlerV1},
@@ -44,33 +44,33 @@ pub struct AppState {
     pub postgres_service: Arc<PostgresService>,
 
     // Material types feature dependencies
-    pub material_type_handler: Arc<dyn MaterialTypeHandler>,
-    pub material_type_service: Arc<dyn MaterialTypeService>,
-    pub material_type_repository: Arc<dyn MaterialTypeRepository>,
+    pub material_type_handler: Arc<dyn TypeHandler>,
+    pub material_type_service: Arc<dyn TypeService>,
+    pub material_type_repository: Arc<dyn TypeRepository>,
 
     // Material names feature dependencies
-    pub material_name_handler: Arc<dyn MaterialNameHandler>,
-    pub material_name_service: Arc<dyn MaterialNameService>,
-    pub material_name_repository: Arc<dyn MaterialNameRepository>,
+    pub material_name_handler: Arc<dyn NameHandler>,
+    pub material_name_service: Arc<dyn NameService>,
+    pub material_name_repository: Arc<dyn NameRepository>,
 
     // Width feature dependencies
-    pub width_handler: Arc<dyn WidthHandler>,
-    pub width_service: Arc<dyn WidthService>,
-    pub width_repository: Arc<dyn WidthRepository>,
+    pub material_width_handler: Arc<dyn WidthHandler>,
+    pub material_width_service: Arc<dyn WidthService>,
+    pub material_width_repository: Arc<dyn WidthRepository>,
 
     // Height feature dependencies
-    pub height_handler: Arc<dyn HeightHandler>,
-    pub height_service: Arc<dyn HeightService>,
-    pub height_repository: Arc<dyn HeightRepository>,
+    pub material_height_handler: Arc<dyn HeightHandler>,
+    pub material_height_service: Arc<dyn HeightService>,
+    pub material_height_repository: Arc<dyn HeightRepository>,
 
     // Thickness feature dependencies
-    pub thickness_handler: Arc<dyn ThicknessHandler>,
-    pub thickness_service: Arc<dyn ThicknessService>,
-    pub thickness_repository: Arc<dyn ThicknessRepository>,
+    pub material_thickness_handler: Arc<dyn ThicknessHandler>,
+    pub material_thickness_service: Arc<dyn ThicknessService>,
+    pub material_thickness_repository: Arc<dyn ThicknessRepository>,
 
     // Health feature dependencies
-    pub health_handler: Arc<dyn HealthHandler>,
-    pub health_service: Arc<dyn HealthService>,
+    pub material_health_handler: Arc<dyn HealthHandler>,
+    pub material_health_service: Arc<dyn HealthService>,
 }
 
 impl AppState {
@@ -79,20 +79,20 @@ impl AppState {
         let pool = postgres_service.connection.pool().clone();
 
         // Создаем зависимости для material types feature
-        let material_type_repository: Arc<dyn MaterialTypeRepository> =
+        let material_type_repository: Arc<dyn TypeRepository> =
             Arc::new(PostgresMaterialTypeRepository::new(pool.clone()));
-        let material_type_service: Arc<dyn MaterialTypeService> =
+        let material_type_service: Arc<dyn TypeService> =
             Arc::new(MaterialTypeServiceImpl::new(material_type_repository.clone()));
-        let material_type_handler: Arc<dyn MaterialTypeHandler> =
+        let material_type_handler: Arc<dyn TypeHandler> =
             Arc::new(MaterialTypeHandlerV1::new(material_type_service.clone()));
 
         // Создаем зависимости для material names feature
-        let material_name_repository: Arc<dyn MaterialNameRepository> =
-            Arc::new(PostgresMaterialNameRepository::new(pool.clone()));
-        let material_name_service: Arc<dyn MaterialNameService> =
-            Arc::new(MaterialNameServiceImpl::new(material_name_repository.clone()));
-        let material_name_handler: Arc<dyn MaterialNameHandler> =
-            Arc::new(MaterialNameHandlerV1::new(material_name_service.clone()));
+        let material_name_repository: Arc<dyn NameRepository> =
+            Arc::new(PostgresNameRepository::new(pool.clone()));
+        let material_name_service: Arc<dyn NameService> =
+            Arc::new(NameServiceImpl::new(material_name_repository.clone()));
+        let material_name_handler: Arc<dyn NameHandler> =
+            Arc::new(HandlerV1::new(material_name_service.clone()));
 
         // Создаем зависимости для widths feature
         let width_repository: Arc<dyn WidthRepository> = Arc::new(PostgresWidthRepository::new(pool.clone()));
@@ -124,17 +124,17 @@ impl AppState {
             material_name_handler,
             material_name_service,
             material_name_repository,
-            width_handler,
-            width_service,
-            width_repository,
-            height_handler,
-            height_service,
-            height_repository,
-            thickness_handler,
-            thickness_service,
-            thickness_repository,
-            health_handler,
-            health_service,
+            material_width_handler: width_handler,
+            material_width_service: width_service,
+            material_width_repository: width_repository,
+            material_height_handler: height_handler,
+            material_height_service: height_service,
+            material_height_repository: height_repository,
+            material_thickness_handler: thickness_handler,
+            material_thickness_service: thickness_service,
+            material_thickness_repository: thickness_repository,
+            material_health_handler: health_handler,
+            material_health_service: health_service,
         }
     }
 }

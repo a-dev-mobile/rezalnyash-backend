@@ -8,31 +8,31 @@ use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 use uuid::Uuid;
 use crate::features::materials::shared::errors::MaterialError;
-use super::service::{MaterialNameService, MaterialNameDto, CreateMaterialNameDto};
+use super::service::{NameService, NameDto, CreateNameDto};
 
 /// API модели запросов
 #[derive(Debug, Deserialize)]
-pub struct CreateMaterialNameRequest {
+pub struct CreateNameRequest {
     pub name_ru: String,
     pub name_en: String,
 }
 
 /// API модели ответов
 #[derive(Debug, Serialize)]
-pub struct MaterialNameResponse {
+pub struct NameResponse {
     pub uid: Uuid,
     pub name_ru: String,
     pub name_en: String,
 }
 
 #[derive(Debug, Serialize)]
-pub struct MaterialNamesListResponse {
-    pub data: Vec<MaterialNameResponse>,
+pub struct NamesListResponse {
+    pub data: Vec<NameResponse>,
     pub total: usize,
 }
 
-impl From<MaterialNameDto> for MaterialNameResponse {
-    fn from(dto: MaterialNameDto) -> Self {
+impl From<NameDto> for NameResponse {
+    fn from(dto: NameDto) -> Self {
         Self {
             uid: dto.uid,
             name_ru: dto.name_ru,
@@ -43,27 +43,27 @@ impl From<MaterialNameDto> for MaterialNameResponse {
 
 /// Трейт обработчика названий материалов
 #[async_trait::async_trait]
-pub trait MaterialNameHandler: Send + Sync {
-    async fn get_material_name(&self, path: Path<String>) -> Response;
-    async fn get_all_material_names(&self) -> Response;
-    async fn create_material_name(&self, payload: Json<CreateMaterialNameRequest>) -> Response;
+pub trait NameHandler: Send + Sync {
+    async fn get_name(&self, path: Path<String>) -> Response;
+    async fn get_all_names(&self) -> Response;
+    async fn create_name(&self, payload: Json<CreateNameRequest>) -> Response;
 }
 
 /// Реализация обработчика v1
-pub struct MaterialNameHandlerV1 {
-    service: Arc<dyn MaterialNameService>,
+pub struct HandlerV1 {
+    service: Arc<dyn NameService>,
 }
 
-impl MaterialNameHandlerV1 {
-    pub fn new(service: Arc<dyn MaterialNameService>) -> Self {
+impl HandlerV1 {
+    pub fn new(service: Arc<dyn NameService>) -> Self {
         Self { service }
     }
 }
 
 #[async_trait::async_trait]
-impl MaterialNameHandler for MaterialNameHandlerV1 {
+impl NameHandler for HandlerV1 {
     /// GET /api/v1/materials/names/{id}
-    async fn get_material_name(&self, Path(id): Path<String>) -> Response {
+    async fn get_name(&self, Path(id): Path<String>) -> Response {
         let uuid = match Uuid::parse_str(&id) {
             Ok(uuid) => uuid,
             Err(_) => {
@@ -73,9 +73,9 @@ impl MaterialNameHandler for MaterialNameHandlerV1 {
             }
         };
 
-        match self.service.get_material_name(uuid).await {
+        match self.service.get_name(uuid).await {
             Ok(dto) => {
-                let response = MaterialNameResponse::from(dto);
+                let response = NameResponse::from(dto);
                 (StatusCode::OK, JsonResponse(response)).into_response()
             }
             Err(error) => error.into_response(),
@@ -83,11 +83,11 @@ impl MaterialNameHandler for MaterialNameHandlerV1 {
     }
 
     /// GET /api/v1/materials/names
-    async fn get_all_material_names(&self) -> Response {
-        match self.service.get_all_material_names().await {
+    async fn get_all_names(&self) -> Response {
+        match self.service.get_all_names().await {
             Ok(dtos) => {
-                let data: Vec<MaterialNameResponse> = dtos.into_iter().map(MaterialNameResponse::from).collect();
-                let response = MaterialNamesListResponse {
+                let data: Vec<NameResponse> = dtos.into_iter().map(NameResponse::from).collect();
+                let response = NamesListResponse {
                     total: data.len(),
                     data,
                 };
@@ -98,15 +98,15 @@ impl MaterialNameHandler for MaterialNameHandlerV1 {
     }
 
     /// POST /api/v1/materials/names
-    async fn create_material_name(&self, Json(payload): Json<CreateMaterialNameRequest>) -> Response {
-        let dto = CreateMaterialNameDto {
+    async fn create_name(&self, Json(payload): Json<CreateNameRequest>) -> Response {
+        let dto = CreateNameDto {
             name_ru: payload.name_ru,
             name_en: payload.name_en,
         };
 
-        match self.service.create_material_name(dto).await {
+        match self.service.create_name(dto).await {
             Ok(created_dto) => {
-                let response = MaterialNameResponse::from(created_dto);
+                let response = NameResponse::from(created_dto);
                 (StatusCode::CREATED, JsonResponse(response)).into_response()
             }
             Err(error) => error.into_response(),

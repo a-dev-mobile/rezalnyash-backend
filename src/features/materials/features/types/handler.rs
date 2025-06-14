@@ -8,7 +8,7 @@ use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 use uuid::Uuid;
 use crate::features::materials::shared::errors::MaterialError;
-use super::service::{MaterialTypeService, MaterialTypeDto, CreateMaterialTypeDto};
+use super::service::{TypeService, MaterialTypeDto, CreateMaterialTypeDto};
 
 /// API модели запросов
 #[derive(Debug, Deserialize)]
@@ -43,27 +43,27 @@ impl From<MaterialTypeDto> for MaterialTypeResponse {
 
 /// Трейт обработчика типов материалов
 #[async_trait::async_trait]
-pub trait MaterialTypeHandler: Send + Sync {
-    async fn get_material_type(&self, path: Path<String>) -> Response;
-    async fn get_all_material_types(&self) -> Response;
-    async fn create_material_type(&self, payload: Json<CreateMaterialTypeRequest>) -> Response;
+pub trait TypeHandler: Send + Sync {
+    async fn get_type(&self, path: Path<String>) -> Response;
+    async fn get_all_types(&self) -> Response;
+    async fn create_type(&self, payload: Json<CreateMaterialTypeRequest>) -> Response;
 }
 
 /// Реализация обработчика v1
 pub struct MaterialTypeHandlerV1 {
-    service: Arc<dyn MaterialTypeService>,
+    service: Arc<dyn TypeService>,
 }
 
 impl MaterialTypeHandlerV1 {
-    pub fn new(service: Arc<dyn MaterialTypeService>) -> Self {
+    pub fn new(service: Arc<dyn TypeService>) -> Self {
         Self { service }
     }
 }
 
 #[async_trait::async_trait]
-impl MaterialTypeHandler for MaterialTypeHandlerV1 {
+impl TypeHandler for MaterialTypeHandlerV1 {
     /// GET /api/v1/materials/types/{id}
-    async fn get_material_type(&self, Path(id): Path<String>) -> Response {
+    async fn get_type(&self, Path(id): Path<String>) -> Response {
         let uuid = match Uuid::parse_str(&id) {
             Ok(uuid) => uuid,
             Err(_) => {
@@ -73,7 +73,7 @@ impl MaterialTypeHandler for MaterialTypeHandlerV1 {
             }
         };
 
-        match self.service.get_material_type(uuid).await {
+        match self.service.get_type(uuid).await {
             Ok(dto) => {
                 let response = MaterialTypeResponse::from(dto);
                 (StatusCode::OK, JsonResponse(response)).into_response()
@@ -83,8 +83,8 @@ impl MaterialTypeHandler for MaterialTypeHandlerV1 {
     }
 
     /// GET /api/v1/materials/types
-    async fn get_all_material_types(&self) -> Response {
-        match self.service.get_all_material_types().await {
+    async fn get_all_types(&self) -> Response {
+        match self.service.get_all_types().await {
             Ok(dtos) => {
                 let data: Vec<MaterialTypeResponse> = dtos.into_iter().map(MaterialTypeResponse::from).collect();
                 let response = MaterialTypesListResponse {
@@ -98,13 +98,13 @@ impl MaterialTypeHandler for MaterialTypeHandlerV1 {
     }
 
     /// POST /api/v1/materials/types
-    async fn create_material_type(&self, Json(payload): Json<CreateMaterialTypeRequest>) -> Response {
+    async fn create_type(&self, Json(payload): Json<CreateMaterialTypeRequest>) -> Response {
         let dto = CreateMaterialTypeDto {
             name_ru: payload.name_ru,
             name_en: payload.name_en,
         };
 
-        match self.service.create_material_type(dto).await {
+        match self.service.create_type(dto).await {
             Ok(created_dto) => {
                 let response = MaterialTypeResponse::from(created_dto);
                 (StatusCode::CREATED, JsonResponse(response)).into_response()

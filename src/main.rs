@@ -93,7 +93,7 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             "/health",
             get({
                 let app_state = Arc::clone(&app_state);
-                move || async move { app_state.health_handler.get_health().await }
+                move || async move { app_state.material_health_handler.get_health().await }
             }),
         )
 
@@ -102,21 +102,21 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             "/api/v1/materials/types",
             get({
                 let app_state = Arc::clone(&app_state);
-                move || async move { app_state.material_type_handler.get_all_material_types().await }
+                move || async move { app_state.material_type_handler.get_all_types().await }
             }),
         )
         .route(
             "/api/v1/materials/types",
             post({
                 let app_state = Arc::clone(&app_state);
-                move |payload| async move { app_state.material_type_handler.create_material_type(payload).await }
+                move |payload| async move { app_state.material_type_handler.create_type(payload).await }
             }),
         )
         .route(
             "/api/v1/materials/types/{id}",
             get({
                 let app_state = Arc::clone(&app_state);
-                move |path| async move { app_state.material_type_handler.get_material_type(path).await }
+                move |path| async move { app_state.material_type_handler.get_type(path).await }
             }),
         )
 
@@ -125,21 +125,21 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             "/api/v1/materials/names",
             get({
                 let app_state = Arc::clone(&app_state);
-                move || async move { app_state.material_name_handler.get_all_material_names().await }
+                move || async move { app_state.material_name_handler.get_all_names().await }
             }),
         )
         .route(
             "/api/v1/materials/names",
             post({
                 let app_state = Arc::clone(&app_state);
-                move |payload| async move { app_state.material_name_handler.create_material_name(payload).await }
+                move |payload| async move { app_state.material_name_handler.create_name(payload).await }
             }),
         )
         .route(
             "/api/v1/materials/names/{id}",
             get({
                 let app_state = Arc::clone(&app_state);
-                move |path| async move { app_state.material_name_handler.get_material_name(path).await }
+                move |path| async move { app_state.material_name_handler.get_name(path).await }
             }),
         )
 
@@ -148,21 +148,21 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             "/api/v1/materials/widths",
             get({
                 let app_state = Arc::clone(&app_state);
-                move || async move { app_state.width_handler.get_all_widths().await }
+                move || async move { app_state.material_width_handler.get_all_widths().await }
             }),
         )
         .route(
             "/api/v1/materials/widths",
             post({
                 let app_state = Arc::clone(&app_state);
-                move |payload| async move { app_state.width_handler.create_width(payload).await }
+                move |payload| async move { app_state.material_width_handler.create_width(payload).await }
             }),
         )
         .route(
             "/api/v1/materials/widths/{id}",
             get({
                 let app_state = Arc::clone(&app_state);
-                move |path| async move { app_state.width_handler.get_width(path).await }
+                move |path| async move { app_state.material_width_handler.get_width(path).await }
             }),
         )
 
@@ -171,21 +171,21 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             "/api/v1/materials/heights",
             get({
                 let app_state = Arc::clone(&app_state);
-                move || async move { app_state.height_handler.get_all_heights().await }
+                move || async move { app_state.material_height_handler.get_all_heights().await }
             }),
         )
         .route(
             "/api/v1/materials/heights",
             post({
                 let app_state = Arc::clone(&app_state);
-                move |payload| async move { app_state.height_handler.create_height(payload).await }
+                move |payload| async move { app_state.material_height_handler.create_height(payload).await }
             }),
         )
         .route(
             "/api/v1/materials/heights/{id}",
             get({
                 let app_state = Arc::clone(&app_state);
-                move |path| async move { app_state.height_handler.get_height(path).await }
+                move |path| async move { app_state.material_height_handler.get_height(path).await }
             }),
         )
 
@@ -194,21 +194,21 @@ fn create_application_router(app_state: Arc<AppState>) -> Router {
             "/api/v1/materials/thicknesses",
             get({
                 let app_state = Arc::clone(&app_state);
-                move || async move { app_state.thickness_handler.get_all_thicknesses().await }
+                move || async move { app_state.material_thickness_handler.get_all_thicknesses().await }
             }),
         )
         .route(
             "/api/v1/materials/thicknesses",
             post({
                 let app_state = Arc::clone(&app_state);
-                move |payload| async move { app_state.thickness_handler.create_thickness(payload).await }
+                move |payload| async move { app_state.material_thickness_handler.create_thickness(payload).await }
             }),
         )
         .route(
             "/api/v1/materials/thicknesses/{id}",
             get({
                 let app_state = Arc::clone(&app_state);
-                move |path| async move { app_state.thickness_handler.get_thickness(path).await }
+                move |path| async move { app_state.material_thickness_handler.get_thickness(path).await }
             }),
         )
 

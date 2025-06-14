@@ -13,7 +13,7 @@ pub struct MaterialTypeDb {
 
 /// Трейт репозитория типов материалов
 #[async_trait::async_trait]
-pub trait MaterialTypeRepository: Send + Sync {
+pub trait TypeRepository: Send + Sync {
     async fn get_by_id(&self, id: MaterialTypeUid) -> Result<MaterialType, MaterialError>;
     async fn get_all(&self) -> Result<Vec<MaterialType>, MaterialError>;
     async fn create(&self, material_type: &MaterialType) -> Result<MaterialType, MaterialError>;
@@ -33,7 +33,7 @@ impl PostgresMaterialTypeRepository {
 }
 
 #[async_trait::async_trait]
-impl MaterialTypeRepository for PostgresMaterialTypeRepository {
+impl TypeRepository for PostgresMaterialTypeRepository {
     async fn get_by_id(&self, id: MaterialTypeUid) -> Result<MaterialType, MaterialError> {
         let row = sqlx::query_as::<_, MaterialTypeDb>(
             "SELECT material_type_uid, name_ru, name_en FROM materials.material_types WHERE material_type_uid = $1"
